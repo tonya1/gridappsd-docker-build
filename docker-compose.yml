@@ -1,0 +1,23 @@
+version: '2'
+
+services:
+  data:
+    image: "data"
+    build: ./containers/data/.
+    volumes:
+      - ./log:/var/log/fncs
+      - ./etc:/etc/fncs
+
+  #test:
+  #  image: "test"
+  #  build: ./containers/test/.
+  #  volumes_from: 
+  #    - data
+
+  fncs:
+    image: "gridappsd/fncs"
+    volumes_from: 
+      - data
+    ports:
+      - 5570:5570
+    command: ["2"]

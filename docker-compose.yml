@@ -8,12 +8,6 @@ services:
       - ./log:/var/log/fncs
       - ./etc:/etc/fncs
 
-  #test:
-  #  image: "test"
-  #  build: ./containers/test/.
-  #  volumes_from: 
-  #    - data
-
   fncs:
     image: "gridappsd/fncs"
     volumes_from: 

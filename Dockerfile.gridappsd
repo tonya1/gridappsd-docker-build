@@ -1,0 +1,9 @@
+FROM gridappsd/gridappsd_base
+
+WORKDIR /working
+
+RUN git clone https://github.com/GRIDAPPSD/GOSS-GridAPPS-D -b master --single-branch
+
+WORKDIR /working/GOSS-GridAPPS-D
+
+RUN ./gradlew check

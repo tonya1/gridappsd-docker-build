@@ -11,14 +11,11 @@ RUN git clone https://github.com/GRIDAPPSD/viz -b master --single-branch
 WORKDIR /viz/viz
 
 RUN npm install
-
+RUN webpack
 
 ENV VIZ_PORT=8082
 ENV PORT=${VIZ_PORT}
 EXPOSE ${VIZ_PORT}
-RUN printenv
-RUN ls -la
-RUN which node
-RUN echo $PATH
+
 CMD ["npm", "start"] 
 

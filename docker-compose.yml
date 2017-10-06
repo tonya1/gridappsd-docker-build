@@ -1,17 +1,55 @@
-version: '2'
+version: '3'
+
+networks:
+  dockernet:
+    external: true
 
 services:
-  data:
-    image: "data"
-    build: ./containers/data/.
-    volumes:
-      - ./log:/var/log/fncs
-      - ./etc:/etc/fncs
+  mysql:
+    image: mysql/mysql-server:5.7
 
-  fncs:
-    image: "gridappsd/fncs"
-    volumes_from: 
-      - data
+    ports: 
+      - 3306:3306
+    networks:
+      - dockernet
+    environment:
+      - MYSQL_ROOT_PASSWORD=gridapsd
+      - MYSQL_DATABASE=gridapsd
+
+    volumes:
+      - /gridapsd/mysqldata:/var/lib/mysql
+
+      #docker run --name my-container-name 
+      # -e MYSQL_ROOT_PASSWORD=/tmp/password.txt 
+      # -v mypasswordfile:/tmp/password.txt 
+      # -e MYSQL_ONETIME_PASSWORD=yes -d mysql/mysql-server:tag
+
+  viz:
+    image: gridappsd/viz
     ports:
-      - 5570:5570
-    command: ["2"]
+      - 8080:8082
+    networks:
+      - dockernet
+
+
+  gridappsd:
+    image: gridappsd/gridappsd
+    ports:
+      - 61614:61614
+
+    # Add volume for configuration
+    # Add volume for log output
+
+    # build: ./containers/data/.
+    # volumes:
+    #   - ./log:/var/log/fncs
+    #   - ./etc:/etc/fncs
+
+  # fncs:
+  #   image: "gridappsd/fncs"
+  #   volumes_from: 
+  #     - data
+  #   ports:
+  #     - 5570:5570
+  #   command: ["2"]
+  

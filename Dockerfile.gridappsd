@@ -4,6 +4,26 @@ WORKDIR /working
 
 RUN git clone https://github.com/GRIDAPPSD/GOSS-GridAPPS-D -b master --single-branch
 
-WORKDIR /working/GOSS-GridAPPS-D
+WORKDIR /working/GOSS-GridAPPS-D/gov.pnnl.goss.gridappsd
 
-RUN ./gradlew check
+# auto validate license
+RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections
+
+# update repos
+RUN echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee /etc/apt/sources.list.d/webupd8team-java.list
+RUN echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee -a /etc/apt/sources.list.d/webupd8team-java.list
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886
+RUN apt-get update
+
+# install java
+RUN apt-get install oracle-java8-installer -y
+
+RUN apt-get clean
+
+ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
+
+
+EXPOSE 61614
+RUN ../gradlew export
+
+CMD ["java", "-jar", "generated/distributions/executable/run.bnd.jar"]

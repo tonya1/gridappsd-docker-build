@@ -1,14 +1,110 @@
-from gridappsd/gridlabd_base
+FROM debian:jessie
 
 RUN apt-get update
-RUN apt-get install -y mysql-server
 
-RUN set -ex && \
-    echo 'deb http://deb.debian.org/debian jessie-backports main' \
-      > /etc/apt/sources.list.d/jessie-backports.list && \
+RUN apt-get install -y \ 
+	wget git automake autoconf make g++ gcc libtool \
+	ca-certificates openssl mysql-client
 
-    apt update -y && \
-    apt install -t \
-      jessie-backports \
-      openjdk-8-jre-headless \
-      ca-certificates-java -y
+ENV GRIDAPPSD=/gridappsd
+ENV FNCS_INSTALL=${GRIDAPPSD}
+ENV GLD_INSTALL=${GRIDAPPSD}
+ENV CZMQ_VERSION 3.0.0
+ENV ZMQ_VERSION 3.2.4
+ENV TEMP_DIR=/tmp/source
+
+ENV FNCS_PORT=5570
+ENV FNCS_LOG_FILE=yes
+ENV FNCS_LOG_STDOUT=yes
+ENV FNCS_LOG_TRACE=yes
+ENV FNCS_LOG_LEVEL=DEBUG4
+ENV FNCS_CONFIG_FILE=""
+ENV FNCS_NAME="fncs"
+ENV FNCS_BROKER=tcp://*:${FNCS_PORT}
+ENV FNCS_LOG_DIR=/fncs/log
+ENV FNCS_LOGGING_FILE=${FNCS_LOG_DIR}/fncs.log
+
+# ----------------------------------------------------
+# INSTALL ZMQ and BINDINGS for c++
+# ----------------------------------------------------
+WORKDIR ${TEMP_DIR}
+RUN rm -f -- zeromq-${ZMQ_VERSION}.tar.gz
+RUN wget http://download.zeromq.org/zeromq-${ZMQ_VERSION}.tar.gz
+RUN tar -xzf zeromq-${ZMQ_VERSION}.tar.gz
+RUN wget http://download.zeromq.org/czmq-${CZMQ_VERSION}-rc1.tar.gz
+RUN tar -xzf czmq-${CZMQ_VERSION}-rc1.tar.gz
+
+WORKDIR ${TEMP_DIR}/zeromq-${ZMQ_VERSION}
+RUN pwd
+RUN ./configure --prefix=${FNCS_INSTALL}
+RUN make
+RUN make install
+
+WORKDIR ${TEMP_DIR}/czmq-${CZMQ_VERSION}
+RUN ./configure --prefix=${FNCS_INSTALL} --with-libzmq=${FNCS_INSTALL}
+RUN make
+RUN make install
+
+RUN mkdir -p ${FNCS_LOG_DIR}
+RUN touch ${FNCS_LOGGING_FILE} 
+
+# ----------------------------------------------------
+# INSTALL FNCS
+# ----------------------------------------------------
+WORKDIR ${TEMP_DIR}
+RUN git clone https://github.com/FNCS/fncs -b develop --single-branch
+WORKDIR ${TEMP_DIR}/fncs
+RUN LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${FNCS_INSTALL}/lib
+RUN ./configure --prefix=${FNCS_INSTALL} --with-zmq=${FNCS_INSTALL}
+RUN make
+RUN make install
+
+# WORKDIR /fncs
+#COPY runit.sh /fncs
+#RUN chmod +x runit.sh
+
+EXPOSE ${FNCS_PORT}
+
+# ----------------------------------------------------
+# INSTALL Gridlab-D
+# ----------------------------------------------------
+WORKDIR ${TEMP_DIR}
+RUN git clone https://github.com/gridlab-d/gridlab-d.git -b release/RC4.0 --single-branch
+
+WORKDIR ${TEMP_DIR}/gridlab-d/third_party
+
+RUN tar -xzf xerces-c-3.1.1.tar.gz
+WORKDIR ${TEMP_DIR}/gridlab-d/third_party/xerces-c-3.1.1
+RUN ./configure
+RUN make
+RUN make install
+
+WORKDIR ${TEMP_DIR}/gridlab-d
+
+RUN autoreconf -if
+RUN ./configure --prefix=$GLD_INSTALL --with-fncs=$FNCS_INSTALL --enable-silent-rules 'CFLAGS=-g -O0 -w' 'CXXFLAGS=-g -O0 -w' 'LDFLAGS=-g -O0 -w'
+RUN make
+RUN make install
+
+# ----------------------------------------------------
+# INSTALL Java
+# ----------------------------------------------------
+
+# auto validate license
+RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections
+
+# update repos
+RUN echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee /etc/apt/sources.list.d/webupd8team-java.list
+RUN echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee -a /etc/apt/sources.list.d/webupd8team-java.list
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886
+RUN apt-get update
+
+# install java
+RUN apt-get install oracle-java8-installer -y
+RUN apt-get clean
+
+ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
+
+RUN rm ${TEMP_DIR} -rf
+RUN unset TEMP_DIR
+RUN apt-get clean

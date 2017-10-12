@@ -1,29 +1,30 @@
 FROM gridappsd/gridappsd_base
-
+RUN printenv
 WORKDIR /working
 
-RUN git clone https://github.com/GRIDAPPSD/GOSS-GridAPPS-D -b master --single-branch
+RUN git clone https://github.com/tdtalbot/GOSS-GridAPPS-D -b master --single-branch
 
 WORKDIR /working/GOSS-GridAPPS-D/gov.pnnl.goss.gridappsd
 
-# auto validate license
-RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections
+RUN ../gradlew export
+RUN cp generated/distributions/executable/run.bnd.jar ${GRIDAPPSD}/lib
 
-# update repos
-RUN echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee /etc/apt/sources.list.d/webupd8team-java.list
-RUN echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee -a /etc/apt/sources.list.d/webupd8team-java.list
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886
-RUN apt-get update
+WORKDIR /working/GOSS-GridAPPS-D
+RUN mkdir -p ${GRIDAPPSD}/scripts/
+#cp applications/python/fncs_goss_bridge.py ~/gridappsd_project/builds/scripts/
+#cp applications/etc/zipload_schedule.player ~/gridappsd_project/builds/scripts/
 
-# install java
-RUN apt-get install oracle-java8-installer -y
-
-RUN apt-get clean
-
-ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
-
+#cp ~/gridappsd_project/sources/fncs/python/fncs.py ~/gridappsd_project/builds/scripts/
+RUN cp -R ./applications ${GRIDAPPSD}
+RUN cp -R ./services ${GRIDAPPSD}
 
 EXPOSE 61614
-RUN ../gradlew export
 
-CMD ["java", "-jar", "generated/distributions/executable/run.bnd.jar"]
+WORKDIR ${GRIDAPPSD}
+COPY ./conf ${GRIDAPPSD}/conf
+COPY ./run-goss-test.sh ${GRIDAPPSD}
+RUN chmod +x run-goss-test.sh
+#CMD [java", "-jar", "generated/distributions/executable/run.bnd.jar"]
+#CMD ["ping", "mysql", "-c", "5"]
+CMD ["./run-goss-test.sh"]
+#java", "-jar", "generated/distributions/executable/run.bnd.jar"]

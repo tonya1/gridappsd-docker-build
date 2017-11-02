@@ -1,21 +1,28 @@
 FROM gridappsd/gridappsd_base
 
-WORKDIR ${TEMP_DIR}
-# RUN mkdir -p ${TEMP_DIR} && \
-#   cd ${TEMP_DIR}
 
-# Using copy because github for somereason didn't resolve!
-COPY GOSS-GridAPPS-D/ ${TEMP_DIR}/GOSS-GridAPPS-D
-WORKDIR ${TEMP_DIR}/GOSS-GridAPPS-D
-RUN ./gradlew export
-RUN cp ./applications /gridappsd/applications -R && \
+RUN mkdir -p ${TEMP_DIR} && \
+  cd ${TEMP_DIR} && \
+  git clone https://192.30.255.113/GRIDAPPSD/GOSS-GridAPPS-D -b master --single-branch && \
+  cd ${TEMP_DIR}/GOSS-GridAPPS-D && \
+  cp ./applications /gridappsd/applications -R && \
   cp ./services /gridappsd/services -R && \
   ./gradlew export && \
   cp gov.pnnl.goss.gridappsd/generated/distributions/executable/run.bnd.jar ${GRIDAPPSD}/lib && \
-  cd / & \
   rm -rf ${TEMP_DIR}/GOSS-GridAPPS-D
-
-WORKDIR ${GRIDAPPSD}
+#
+# # Using copy because github for somereason didn't resolve!
+# COPY GOSS-GridAPPS-D/ ${TEMP_DIR}/GOSS-GridAPPS-D
+# WORKDIR ${TEMP_DIR}/GOSS-GridAPPS-D
+# RUN ./gradlew export
+# RUN cp ./applications /gridappsd/applications -R && \
+#   cp ./services /gridappsd/services -R && \
+#   ./gradlew export && \
+#   cp gov.pnnl.goss.gridappsd/generated/distributions/executable/run.bnd.jar ${GRIDAPPSD}/lib && \
+#   cd / & \
+#   rm -rf ${TEMP_DIR}/GOSS-GridAPPS-D
+#
+# WORKDIR ${GRIDAPPSD}
 #   git clone file:///home/vdev/git/GOSS-GridAPPS-D -b master --single-branch && \
 #   cd ${TEMP_DIR}/GOSS-GridAPPS-D && \
 #   cp ./applications /gridappsd/applications -R && \

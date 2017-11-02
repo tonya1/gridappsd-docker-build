@@ -1,4 +1,4 @@
-version: '3'
+version: '2'
 
 services:
   blazegraph:
@@ -7,36 +7,39 @@ services:
       - 8889:8080
 
     volumes:
-      - ./blazegraphdata:/data
+      # Should match what is in run-example.sh
+      - /tmp/gridappsd/blazegraph/data:/data
+      - /tmp/gridappsd/log:/tmp/gridappsd/log
+      - ./conf:/gridappsd/conf
+      - ./conf/rwstore.properties:/RWStore.properties
       #- ./blazegraphprops/rwstore.properties:/RWStore.properties
 
-  mysql:
-    image: mysql/mysql-server:5.7
+  # mysql:
+  #   image: mysql/mysql-server:5.7
+  #
+  #   ports:
+  #     - 3306:3306
+  #
+  #   environment:
+  #     MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+  #     MYSQL_PORT: 3306
+  #
+  #   volumes:
+  #     - ./gridappsdmysql:/var/lib/mysql
+  #     - ./mysqldump/gridappsd_mysql_dump.sql:/docker-entrypoint-initdb.d/schema.sql:ro
 
-    ports: 
-      - 3306:3306
-    # networks:
-    #   - dockernet
-    environment:
-      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
-      MYSQL_PORT: 3306
-
-    volumes:
-      - ./gridappsdmysql:/var/lib/mysql
-      - ./mysqldump/gridappsd_mysql_dump.sql:/docker-entrypoint-initdb.d/schema.sql:ro
-
-      #docker run --name my-container-name 
-      # -e MYSQL_ROOT_PASSWORD=/tmp/password.txt 
-      # -v mypasswordfile:/tmp/password.txt 
+      #docker run --name my-container-name
+      # -e MYSQL_ROOT_PASSWORD=/tmp/password.txt
+      # -v mypasswordfile:/tmp/password.txt
       # -e MYSQL_ONETIME_PASSWORD=yes -d mysql/mysql-server:tag
 
-  viz:
-    image: gridappsd/viz
-    ports:
-      - 8080:8080
-
-    depends_on:
-      - gridappsd
+  # viz:
+  #   image: gridappsd/viz
+  #   ports:
+  #     - 8080:8080
+  #
+  #   depends_on:
+  #     - gridappsd
 
 
   gridappsd:
@@ -45,7 +48,7 @@ services:
       - 61614:61614
 
     depends_on:
-      - mysql
+      #- mysql
       - blazegraph
 
     # Add volume for configuration
@@ -58,9 +61,8 @@ services:
 
   # fncs:
   #   image: "gridappsd/fncs"
-  #   volumes_from: 
+  #   volumes_from:
   #     - data
   #   ports:
   #     - 5570:5570
   #   command: ["2"]
-  

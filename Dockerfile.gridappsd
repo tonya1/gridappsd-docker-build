@@ -1,30 +1,65 @@
 FROM gridappsd/gridappsd_base
-RUN printenv
-WORKDIR /working
 
-RUN git clone https://github.com/tdtalbot/GOSS-GridAPPS-D -b master --single-branch
+WORKDIR ${TEMP_DIR}
+# RUN mkdir -p ${TEMP_DIR} && \
+#   cd ${TEMP_DIR}
 
-WORKDIR /working/GOSS-GridAPPS-D/gov.pnnl.goss.gridappsd
-
-RUN ../gradlew export
-RUN cp generated/distributions/executable/run.bnd.jar ${GRIDAPPSD}/lib
-
-WORKDIR /working/GOSS-GridAPPS-D
-RUN mkdir -p ${GRIDAPPSD}/scripts/
-#cp applications/python/fncs_goss_bridge.py ~/gridappsd_project/builds/scripts/
-#cp applications/etc/zipload_schedule.player ~/gridappsd_project/builds/scripts/
-
-#cp ~/gridappsd_project/sources/fncs/python/fncs.py ~/gridappsd_project/builds/scripts/
-RUN cp -R ./applications ${GRIDAPPSD}
-RUN cp -R ./services ${GRIDAPPSD}
-
-EXPOSE 61614
+# Using copy because github for somereason didn't resolve!
+COPY GOSS-GridAPPS-D/ ${TEMP_DIR}/GOSS-GridAPPS-D
+WORKDIR ${TEMP_DIR}/GOSS-GridAPPS-D
+RUN ./gradlew export
+RUN cp ./applications /gridappsd/applications -R && \
+  cp ./services /gridappsd/services -R && \
+  ./gradlew export && \
+  cp gov.pnnl.goss.gridappsd/generated/distributions/executable/run.bnd.jar ${GRIDAPPSD}/lib && \
+  cd / & \
+  rm -rf ${TEMP_DIR}/GOSS-GridAPPS-D
 
 WORKDIR ${GRIDAPPSD}
-COPY ./conf ${GRIDAPPSD}/conf
-COPY ./run-goss-test.sh ${GRIDAPPSD}
-RUN chmod +x run-goss-test.sh
-#CMD [java", "-jar", "generated/distributions/executable/run.bnd.jar"]
-#CMD ["ping", "mysql", "-c", "5"]
-CMD ["./run-goss-test.sh"]
-#java", "-jar", "generated/distributions/executable/run.bnd.jar"]
+#   git clone file:///home/vdev/git/GOSS-GridAPPS-D -b master --single-branch && \
+#   cd ${TEMP_DIR}/GOSS-GridAPPS-D && \
+#   cp ./applications /gridappsd/applications -R && \
+#   cp ./services /gridappsd/services -R && \
+#   ./gradlew export && \
+#   cp gov.pnnl.goss.gridappsd/generated/distributions/executable/run.bnd.jar ${GRIDAPPSD}/lib && \
+#   rm -rf ${TEMP_DIR}/GOSS-GridAPPS-D
+#
+VOLUME /gridappsd/conf /tmp/gridappsd/log
+
+# Should match what is in conf/pnnl.goss.core.server.cfg and
+# conf/pnnl.goss.core.client.cfg
+EXPOSE 61616 61613 61614
+#
+# RUN PATH=/gridappsd/bin:/gridappsd/lib:$PATH
+# # At the begining of this file we are at the / of the container.
+# CMD ["echo", "$PATH"]
+
+# pwd && ls -la && echo $PATH"]
+# WORKDIR /working
+#
+# RUN git clone https://github.com/tdtalbot/GOSS-GridAPPS-D -b master --single-branch
+#
+# WORKDIR /working/GOSS-GridAPPS-D/gov.pnnl.goss.gridappsd
+#
+# RUN ../gradlew export
+# RUN cp generated/distributions/executable/run.bnd.jar ${GRIDAPPSD}/lib
+#
+# WORKDIR /working/GOSS-GridAPPS-D
+# RUN mkdir -p ${GRIDAPPSD}/scripts/
+# #cp applications/python/fncs_goss_bridge.py ~/gridappsd_project/builds/scripts/
+# #cp applications/etc/zipload_schedule.player ~/gridappsd_project/builds/scripts/
+#
+# #cp ~/gridappsd_project/sources/fncs/python/fncs.py ~/gridappsd_project/builds/scripts/
+# RUN cp -R ./applications ${GRIDAPPSD}
+# RUN cp -R ./services ${GRIDAPPSD}
+#
+# EXPOSE 61614
+#
+# WORKDIR ${GRIDAPPSD}
+# COPY ./conf ${GRIDAPPSD}/conf
+# COPY ./run-goss-test.sh ${GRIDAPPSD}
+# RUN chmod +x run-goss-test.sh
+# #CMD [java", "-jar", "generated/distributions/executable/run.bnd.jar"]
+# #CMD ["ping", "mysql", "-c", "5"]
+# CMD ["./run-goss-test.sh"]
+# #java", "-jar", "generated/distributions/executable/run.bnd.jar"]

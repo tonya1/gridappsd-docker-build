@@ -1,15 +1,22 @@
 FROM gridappsd/gridappsd_base
 
 
-RUN mkdir -p ${TEMP_DIR} && \
+RUN apt-get update && \
+  apt-get install -y python-pip && \
+  mkdir -p ${TEMP_DIR} && \
   cd ${TEMP_DIR} && \
-  git clone https://192.30.255.113/GRIDAPPSD/GOSS-GridAPPS-D -b master --single-branch && \
+  git clone https://github.com/GRIDAPPSD/GOSS-GridAPPS-D -b dockerized --single-branch && \
   cd ${TEMP_DIR}/GOSS-GridAPPS-D && \
   cp ./applications /gridappsd/applications -R && \
   cp ./services /gridappsd/services -R && \
+  pip install -r /gridappsd/services/fncsgossbridge/requirements.txt && \
   ./gradlew export && \
   cp gov.pnnl.goss.gridappsd/generated/distributions/executable/run.bnd.jar ${GRIDAPPSD}/lib && \
-  rm -rf ${TEMP_DIR}/GOSS-GridAPPS-D
+  rm -rf ${TEMP_DIR}/GOSS-GridAPPS- && \
+  rm -rf /var/cache/apt/archives/*
+
+COPY ./gridappsd.run.sh /gridappsd/gridappsd.run.sh
+
 #
 # # Using copy because github for somereason didn't resolve!
 # COPY GOSS-GridAPPS-D/ ${TEMP_DIR}/GOSS-GridAPPS-D

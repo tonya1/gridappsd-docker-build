@@ -1,4 +1,4 @@
-FROM python:3.5-jessie
+FROM python:2.7-jessie
 
 RUN apt-get update \
     && apt-get install -y \
@@ -13,8 +13,8 @@ RUN apt-get update \
        ca-certificates \
        openssl \
        mysql-client \
-    && rm -rf /var/lib/apt/lists/*
-
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /var/cache/apt/archives/*
 
 ENV GRIDAPPSD=/gridappsd
 ENV FNCS_INSTALL=${GRIDAPPSD}
@@ -23,16 +23,12 @@ ENV CZMQ_VERSION 3.0.2
 ENV ZMQ_VERSION 4.0.2
 ENV TEMP_DIR=/tmp/source
 
-ENV FNCS_PORT=5570
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${FNCS_INSTALL}/lib
+
 ENV FNCS_LOG_FILE=yes
 ENV FNCS_LOG_STDOUT=yes
 ENV FNCS_LOG_TRACE=yes
 ENV FNCS_LOG_LEVEL=DEBUG4
-#ENV FNCS_CONFIG_FILE=""
-ENV FNCS_NAME="fncs"
-ENV FNCS_BROKER=tcp://*:${FNCS_PORT}
-ENV FNCS_LOG_DIR=/fncs/log
-ENV FNCS_LOGGING_FILE=${FNCS_LOG_DIR}/fncs.log
 
 # ----------------------------------------------------
 # INSTALL ZMQ and BINDINGS for c++
@@ -61,16 +57,13 @@ RUN cd ${TEMP_DIR} \
     && /bin/rm -r ${TEMP_DIR}/czmq-${CZMQ_VERSION} \
     && /bin/rm ${TEMP_DIR}/czmq-${CZMQ_VERSION}.tar.gz
 
-RUN mkdir -p ${FNCS_LOG_DIR} \
-    && touch ${FNCS_LOGGING_FILE}
 
 # ----------------------------------------------------
 # INSTALL FNCS
 # ----------------------------------------------------
 
 RUN cd $TEMP_DIR \
-    && git clone -b develop --single-branch https://github.com/GRIDAPPSD/fncs.git \
-    && LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${FNCS_INSTALL}/lib \
+    && git clone -b master --single-branch https://github.com/FNCS/fncs.git \
     && cd fncs \
     && ./configure --prefix=${FNCS_INSTALL} --with-zmq=${FNCS_INSTALL} \
     && make \
@@ -78,19 +71,12 @@ RUN cd $TEMP_DIR \
     && cd /tmp \
     && /bin/rm -r ${TEMP_DIR}/fncs
 
-
-# WORKDIR /fncs
-#COPY runit.sh /fncs
-#RUN chmod +x runit.sh
-
-EXPOSE ${FNCS_PORT}
-
 # ----------------------------------------------------
 # INSTALL Gridlab-D
 # ----------------------------------------------------
 
 RUN cd $TEMP_DIR \
-    && git clone https://github.com/gridlab-d/gridlab-d.git -b release/RC4.0 --single-branch \
+    && git clone https://github.com/gridlab-d/gridlab-d.git -b master --single-branch \
     && cd ${TEMP_DIR}/gridlab-d/third_party \
     && tar -xzf xerces-c-3.1.1.tar.gz \
     && cd ${TEMP_DIR}/gridlab-d/third_party/xerces-c-3.1.1 \

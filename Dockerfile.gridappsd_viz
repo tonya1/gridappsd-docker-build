@@ -2,14 +2,15 @@ FROM node:boron
 
 WORKDIR /viz
 
-ENV REPO=craig8/viz
-ENV ARCHIVE_FILE=dockerized.zip
+ARG REPO=GRIDAPPSD/viz
+ARG BRANCH=master
+ARG ARCHIVE_FILE=$BRANCH.zip
 
 RUN wget --no-check-certificate -O $ARCHIVE_FILE https://github.com/$REPO/archive/$ARCHIVE_FILE
 RUN apt-get update && apt-get install unzip
 RUN unzip $ARCHIVE_FILE
 RUN ls -la
-RUN mv viz-dockerized viz
+RUN mv viz-$BRANCH viz
 
 RUN npm install -g typescript
 RUN npm install -g typings

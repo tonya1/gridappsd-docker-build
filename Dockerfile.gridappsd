@@ -1,5 +1,6 @@
-FROM gridappsd/gridappsd_base
+ARG GRIDAPPSD_VERSION_LABEL=:rc2
 
+FROM gridappsd/gridappsd_base${GRIDAPPSD_VERSION_LABEL}
 
 RUN apt-get update && \
   apt-get install -y python-pip && \
@@ -22,7 +23,6 @@ RUN chmod +x /gridappsd/gridappsd.run.sh
 # Uncomment the following to have debug tools in the image
 # RUN apt-get update && apt-get install -y net-tools vim
 
-
 VOLUME /gridappsd/conf /tmp/gridappsd/log
 
 # Should match what is in conf/pnnl.goss.core.server.cfg and
@@ -30,4 +30,4 @@ VOLUME /gridappsd/conf /tmp/gridappsd/log
 EXPOSE 61616 61613 61614
 
 WORKDIR /gridappsd
-CMD ["./gridappsd.run.sh"]
+# CMD ["./gridappsd.run.sh"]

@@ -1,4 +1,4 @@
-FROM python:2.7-jessie
+FROM python:3.5-jessie
 
 RUN apt-get update \
     && apt-get install -y \
@@ -63,7 +63,7 @@ RUN cd ${TEMP_DIR} \
 # ----------------------------------------------------
 
 RUN cd $TEMP_DIR \
-    && git clone -b master --single-branch https://github.com/FNCS/fncs.git \
+    && git clone -b develop --single-branch https://github.com/FNCS/fncs.git \
     && cd fncs \
     && ./configure --prefix=${FNCS_INSTALL} --with-zmq=${FNCS_INSTALL} \
     && make \

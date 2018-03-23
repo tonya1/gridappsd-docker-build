@@ -12,7 +12,8 @@ IMAGE="gridappsd/gridappsd_base:dev"
 while getopts bp option ; do
   case $option in
     b) # Pass gridappsd tag to docker-compose
-      docker build -f "../Dockerfile.gridappsd_base" -t $IMAGE .
+      # Docker file on travis relative from root.
+      docker build -f "Dockerfile.gridappsd_base" -t $IMAGE .
       ;;
     p) # Pass gridappsd tag to docker-compose
       docker push $IMAGE

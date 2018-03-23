@@ -12,6 +12,8 @@ RUN apt-get update \
        libtool \
        ca-certificates \
        openssl \
+       # These two for activemq \       
+       libaprutil1-dev \
        mysql-client \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/archives/*
@@ -57,7 +59,6 @@ RUN cd ${TEMP_DIR} \
     && /bin/rm -r ${TEMP_DIR}/czmq-${CZMQ_VERSION} \
     && /bin/rm ${TEMP_DIR}/czmq-${CZMQ_VERSION}.tar.gz
 
-
 # ----------------------------------------------------
 # INSTALL FNCS
 # ----------------------------------------------------
@@ -89,9 +90,7 @@ RUN cd $TEMP_DIR \
     && make \
     && make install \
     && cd /tmp \
-    && /bin/rm -r ${TEMP_DIR}/gridlab-d \
-    && rmdir ${TEMP_DIR}
-#    && unset TEMP_DIR
+    && /bin/rm -r ${TEMP_DIR}/gridlab-d
 
 # ----------------------------------------------------
 # INSTALL Java
@@ -107,5 +106,22 @@ RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true 
     # install java
     && apt-get install oracle-java8-installer -y \
     && apt-get clean
+
+
+# ----------------------------------------------------
+# INSTALL Activemq c++ extensions
+# ----------------------------------------------------
+RUN cd ${TEMP_DIR} \
+    && wget http://mirror.olnevhost.net/pub/apache/activemq/activemq-cpp/3.9.4/activemq-cpp-library-3.9.4-src.tar.gz \
+    && tar -xzf activemq-cpp-library-3.9.4-src.tar.gz \
+    && cd activemq-cpp-library-3.9.4 \
+    && ./configure --prefix=${FNCS_INSTALL} \
+    && make \
+    && make install \
+    && cd /tmp \
+    && /bin/rm -r ${TEMP_DIR}/activemq-cpp-library-3.9.4 \
+    && /bin/rm -r ${TEMP_DIR}/activemq-cpp-library-3.9.4-src.tar.gz \
+    && rmdir ${TEMP_DIR}
+
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-oracle

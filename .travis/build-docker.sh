@@ -23,4 +23,3 @@ while getopts bp option ; do
       ;;
   esac
 done
-shift `expr $OPTIND - 1`

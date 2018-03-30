@@ -24,10 +24,8 @@ script:
 # environment in the settings pannel.
 after_success:
   - if [[ "$TRAVIS_BRANCH" == "master" ]]; then
-      if [ x "$DOCKER_USERNAME" != x"" -a x "$DOCKER_PASSWORD" != x"" ]; then
-        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD ;
-        ./.travis/build-docker.sh -p;
-      fi
+      docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD ;
+      ./.travis/build-docker.sh -p ;
     fi
 
 

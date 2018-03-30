@@ -1,4 +1,6 @@
-FROM python:3.5-jessie
+FROM ubuntu:xenial
+
+WORKDIR /gridappsd
 
 RUN apt-get update \
     && apt-get install -y \
@@ -125,3 +127,5 @@ RUN cd ${TEMP_DIR} \
 
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
+
+

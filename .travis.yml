@@ -12,7 +12,7 @@ before_install:
   - './.travis/main.sh'
   
 script:
-  - './build-docker.sh -b'
+  - './.travis/build-docker.sh -b'
 
 # only execute the following instructions in
 # the case of a success (failing at this point
@@ -25,8 +25,8 @@ script:
 after_success:
   - if [[ "$TRAVIS_BRANCH" == "master" ]]; then
       if [ x "$DOCKER_USERNAME" != x"" -a x "$DOCKER_PASSWORD" != x"" ]; then
-        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD ;
-        ./build-docker.sh -p;
+        docker login -u $DOCKER_USERNAME --password-usestdin < $DOCKER_PASSWORD ;
+        ./travis/build-docker.sh -p;
       fi
     fi
 

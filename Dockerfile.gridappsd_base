@@ -1,4 +1,7 @@
-FROM ubuntu:xenial
+# This is a xenial base with python 3.5 as well
+FROM sgoblin/python3.5:latest
+
+#FROM ubuntu:xenial
 
 WORKDIR /gridappsd
 

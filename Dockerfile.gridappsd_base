@@ -69,11 +69,15 @@ RUN cd ${TEMP_DIR} \
 # ----------------------------------------------------
 
 RUN cd $TEMP_DIR \
-    && git clone -b develop --single-branch https://github.com/FNCS/fncs.git \
+    && git clone -b fncs-package --single-branch https://github.com/GRIDAPPSD/fncs.git \
     && cd fncs \
     && ./configure --prefix=${FNCS_INSTALL} --with-zmq=${FNCS_INSTALL} \
     && make \
     && make install \
+    && cd python \
+    && python setup.py sdist \
+    && pip install dist/fncs-2.0.tar.gz \
+    && pip3 install dist/fncs-2.0.tar.gz \
     && cd /tmp \
     && /bin/rm -r ${TEMP_DIR}/fncs
 
@@ -125,8 +129,7 @@ RUN cd ${TEMP_DIR} \
     && make install \
     && cd /tmp \
     && /bin/rm -r ${TEMP_DIR}/activemq-cpp-library-3.9.4 \
-    && /bin/rm -r ${TEMP_DIR}/activemq-cpp-library-3.9.4-src.tar.gz \
-    && rmdir ${TEMP_DIR}
+    && /bin/rm -r ${TEMP_DIR}/activemq-cpp-library-3.9.4-src.tar.gz 
 
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-oracle

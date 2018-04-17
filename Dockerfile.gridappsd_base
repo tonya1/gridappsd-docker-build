@@ -20,6 +20,8 @@ RUN apt-get update \
        # These two for activemq \       
        libaprutil1-dev \
        mysql-client \
+       python-dev \ 
+       python-pip \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/archives/*
 

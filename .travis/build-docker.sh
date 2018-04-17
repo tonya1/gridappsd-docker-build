@@ -10,8 +10,8 @@ IMAGE="gridappsd/gridappsd_base:dev"
 
 trigger_gridappsd_build() {
 body='{
-"request": {
-"branch":"master"
+  "request": {
+  "branch":"master"
 }}'
 
 curl -s -X POST \
@@ -26,7 +26,7 @@ curl -s -X POST \
 while getopts bp option ; do
   case $option in
     b) # Pass gridappsd tag to docker-compose
-      docker build -no-cache -rm=true -f Dockerfile.gridappsd_base -t $IMAGE .
+      docker build --no-cache --rm=true -f Dockerfile.gridappsd_base -t $IMAGE .
       ;;
     p) # Pass gridappsd tag to docker-compose
       docker push $IMAGE

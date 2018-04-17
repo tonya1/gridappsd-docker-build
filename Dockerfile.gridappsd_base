@@ -22,6 +22,7 @@ RUN apt-get update \
        mysql-client \
        python-dev \ 
        python-pip \
+       vim \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/archives/*
 

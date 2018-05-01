@@ -72,7 +72,7 @@ RUN cd ${TEMP_DIR} \
 # ----------------------------------------------------
 
 RUN cd $TEMP_DIR \
-    && git clone -b fncs-package --single-branch https://github.com/GRIDAPPSD/fncs.git \
+    && git clone -b develop --single-branch https://github.com/GRIDAPPSD/fncs.git \
     && cd fncs \
     && ./configure --prefix=${FNCS_INSTALL} --with-zmq=${FNCS_INSTALL} \
     && make \

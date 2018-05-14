@@ -1,5 +1,15 @@
 #!/bin/bash
 
+####
+# pull the lyrasis/blazegraph:2.1.4 container
+# create a intermediate build container and add the gridappsd configuration file
+# start the build container and import the xml files
+# checkout the Powergrid-Models 
+#  update the constants.py
+#  load the measurments
+# print instructions for committing the build container, tagging and pushing to dockerhub
+####
+
 usage () {
   /bin/echo "Usage:  $0 [-d]"
   /bin/echo "        -d      debug"

@@ -35,7 +35,7 @@ curl -s -X POST \
 while getopts bp option ; do
   case $option in
     b) # Pass gridappsd tag to docker-compose
-      docker build --no-cache --rm=true --build-arg TIMESTAMP="${BUILD_VERSION}" -f Dockerfile.gridappsd_base -t ${IMAGE}:$TIMESTAMP .
+      docker build --no-cache --rm=true --build-arg TIMESTAMP="${BUILD_VERSION}" -f Dockerfile.gridappsd_base -t ${IMAGE}:${TIMESTAMP}_${GITHASH} .
       ;;
     p) # Pass gridappsd tag to docker-compose
       if [ -n "$TAG" -a -n "$ORG" ]; then

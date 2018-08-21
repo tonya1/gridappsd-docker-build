@@ -56,7 +56,7 @@ http_status_container() {
 }
 
 url_viz="http://localhost:8080/"
-blazegraph_models="EPRI_DPV_J1.xml IEEE123.xml R2_12_47_2.xml IEEE8500.xml"
+blazegraph_models="EPRI_DPV_J1.xml IEEE123.xml IEEE13.xml R2_12_47_2.xml IEEE8500.xml"
 url_blazegraph="http://localhost:8889/bigdata/"
 data_dir="Powergrid-Models/blazegraph/Test"
 debug=0

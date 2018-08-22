@@ -22,6 +22,7 @@ RUN apt-get update \
        mysql-client \
        python-dev \ 
        python-pip \
+       sudo \
        vim \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/archives/*
@@ -38,7 +39,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${FNCS_INSTALL}/lib
 ENV FNCS_LOG_FILE=yes
 ENV FNCS_LOG_STDOUT=yes
 ENV FNCS_LOG_TRACE=yes
-ENV FNCS_LOG_LEVEL=DEBUG4
+ENV FNCS_LOG_LEVEL=DEBUG1
 
 # ----------------------------------------------------
 # INSTALL ZMQ and BINDINGS for c++
@@ -89,10 +90,10 @@ RUN cd $TEMP_DIR \
 # ----------------------------------------------------
 
 RUN cd $TEMP_DIR \
-    && git clone https://github.com/gridlab-d/gridlab-d.git -b master --single-branch \
+    && git clone https://github.com/gridlab-d/gridlab-d.git -b develop --single-branch \
     && cd ${TEMP_DIR}/gridlab-d/third_party \
-    && tar -xzf xerces-c-3.1.1.tar.gz \
-    && cd ${TEMP_DIR}/gridlab-d/third_party/xerces-c-3.1.1 \
+    && tar -xzf xerces-c-3.2.0.tar.gz \
+    && cd ${TEMP_DIR}/gridlab-d/third_party/xerces-c-3.2.0 \
     && ./configure \
     && make \
     && make install \

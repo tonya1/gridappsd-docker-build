@@ -9,13 +9,12 @@ usage () {
 TAG="$TRAVIS_BRANCH"
 
 ORG=`echo $DOCKER_PROJECT | tr '[:upper:]' '[:lower:]'`
+ORG="${ORG:-gridappsd}"
 ORG="${ORG:+${ORG}/}"
 IMAGE="${ORG}gridappsd_base"
 TIMESTAMP=`date +'%y%m%d%H'`
 GITHASH=`git log -1 --pretty=format:"%h"`
 
-BUILD_VERSION="${TIMESTAMP}_${GITHASH}${TRAVIS_BRANCH:+:$TRAVIS_BRANCH}"
-echo "BUILD_VERSION $BUILD_VERSION"
 
 trigger_gridappsd_build() {
 body='{
@@ -35,13 +34,20 @@ curl -s -X POST \
 while getopts bp option ; do
   case $option in
     b) # Pass gridappsd tag to docker-compose
+      BUILD_VERSION="${TIMESTAMP}_${GITHASH}${TRAVIS_BRANCH:+:$TRAVIS_BRANCH}"
+      echo "BUILD_VERSION $BUILD_VERSION"
+      echo "DOCKER TAG ${IMAGE}:${TIMESTAMP}_${GITHASH}"
       docker build --no-cache --rm=true --build-arg TIMESTAMP="${BUILD_VERSION}" -f Dockerfile.gridappsd_base -t ${IMAGE}:${TIMESTAMP}_${GITHASH} .
       ;;
     p) # Pass gridappsd tag to docker-compose
+      docker images
       if [ -n "$TAG" -a -n "$ORG" ]; then
-        echo "docker push ${IMAGE}:${TIMESTAMP}_${GITHASH}"
-        docker push ${IMAGE}:${TIMESTAMP}_${GITHASH}
-        docker tag ${IMAGE}:${TIMESTAMP}_${GITHASH} ${IMAGE}:$TAG
+        # Get the built container name, for builds that cross the hour boundary
+        CONTAINER=`docker images --format "{{.Repository}}:{{.Tag}}" ${IMAGE}`
+        echo "$CONTAINER"
+        echo "docker push ${CONTAINER}"
+        docker push ${CONTAINER}
+        docker tag ${CONTAINER} ${IMAGE}:$TAG
         echo "docker push ${IMAGE}:$TAG"
         docker push ${IMAGE}:$TAG
         trigger_gridappsd_build

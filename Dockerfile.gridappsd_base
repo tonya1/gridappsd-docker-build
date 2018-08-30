@@ -105,6 +105,9 @@ RUN cd $TEMP_DIR \
     && cd /tmp \
     && /bin/rm -r ${TEMP_DIR}/gridlab-d
 
+ENV GLPATH=${GLD_INSTALL}/lib/gridlabd:${GLD_INSTALL}/share/gridlabd
+ENV CXXFLAGS=${GLD_INSTALL}/share/gridlabd
+
 # ----------------------------------------------------
 # INSTALL Java
 # ----------------------------------------------------

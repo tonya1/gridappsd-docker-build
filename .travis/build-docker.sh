@@ -15,7 +15,7 @@ echo "BUILD_VERSION $BUILD_VERSION"
 trigger_gridappsd_build() {
 body='{
   "request": {
-  "branch":"master"
+  "branch":"$TRAVIS_BRANCH"
 }}'
 
 echo " "
@@ -58,7 +58,6 @@ if [ -n "$DOCKER_USERNAME" -a -n "$DOCKER_PASSWORD" ]; then
   fi
 
   if [ -n "$TAG" -a -n "$ORG" ]; then
-    # Get the built container name, for builds that cross the hour boundary
     CONTAINER=`docker images --format "{{.Repository}}:{{.Tag}}" ${IMAGE}`
 
     echo "docker push ${CONTAINER}"

@@ -18,6 +18,9 @@ body='{
   "branch":"master"
 }}'
 
+echo " "
+echo "Triggering gridappsd build"
+
 curl -s -X POST \
    -H "Content-Type: application/json" \
    -H "Accept: application/json" \

@@ -99,7 +99,7 @@ RUN cd $TEMP_DIR \
     && make install \
     && cd ${TEMP_DIR}/gridlab-d \
     && autoreconf -if \
-    && ./configure --prefix=$GLD_INSTALL --with-fncs=$FNCS_INSTALL --enable-silent-rules 'CFLAGS=-g -O0 -w' 'CXXFLAGS=-g -O0 -w' 'LDFLAGS=-g -O0 -w' \
+    && ./configure --prefix=$GLD_INSTALL --with-fncs=$FNCS_INSTALL --enable-silent-rules 'CFLAGS=-g -O0 -w' 'CXXFLAGS=-g -O0 -w -std=c++11' 'LDFLAGS=-g -O0 -w' \
     && make \
     && make install \
     && cd /tmp \

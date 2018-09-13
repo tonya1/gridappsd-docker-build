@@ -62,7 +62,7 @@ data_dir="Powergrid-Models/blazegraph/Test"
 debug=0
 exists=0
 # set the default tag for the gridappsd and viz containers
-GRIDAPPSD_TAG=':dev'
+GRIDAPPSD_TAG=':develop'
 
 # parse options
 while getopts dpt: option ; do
@@ -81,6 +81,18 @@ shift `expr $OPTIND - 1`
 cwd=`pwd`
 
 echo " "
+echo "Pulling Powergrid-Models"
+if [ -d Powergrid-Models ]; then
+  cd Powergrid-Models
+  git pull -v
+  cd $cwd
+else
+  git clone http://github.com/GRIDAPPSD/Powergrid-Models
+fi
+
+GITHASH=`git -C Powergrid-Models log -1 --pretty=format:"%h"`
+
+echo " "
 echo "Getting blazegraph status"
 status=$(curl -s --head -w %{http_code} "$url_blazegraph" -o /dev/null)
 debug_msg "blazegraph curl status: $status"
@@ -92,7 +104,7 @@ TIMESTAMP=`date +'%y%m%d%H'`
 
 echo "TIMESTAMP $TIMESTAMP"
 
-docker build --build-arg TIMESTAMP="${TIMESTAMP}:${TRAVIS_BRANCH}" -t gridappsd/blazegraph:build -f Dockerfile.gridappsd_base_blazegraph .
+docker build --build-arg TIMESTAMP="${TIMESTAMP}_${GITHASH}" -t gridappsd/blazegraph:build -f Dockerfile.gridappsd_blazegraph .
 
 echo " "
 echo "Running the build container to load the data"
@@ -109,15 +121,6 @@ if [ "$status" -gt 0 ]; then
   echo "Exiting "
   exit 1
 fi
-
-if [ -d Powergrid-Models ]; then
-  cd Powergrid-Models
-  git pull -v
-  cd $cwd
-else
-  git clone http://github.com/GRIDAPPSD/Powergrid-Models
-fi
-
 
 http_status_container 'blazegraph'
 
@@ -179,9 +182,6 @@ echo "----- list"
 echo "----- insertall"
 ./insertall.sh
 
-echo "----- insert"
-python InsertMeasurements.py ieee8500_rc1.bak
-
 echo "----- list"
 ./listall.sh
 
@@ -189,10 +189,10 @@ echo "----- list"
 echo " "
 echo "Run these commands to commit the container and push the container to dockerhub"
 echo "----"
-echo "docker commit $did gridappsd/blazegraph:${TIMESTAMP} "
+echo "docker commit $did gridappsd/blazegraph:${TIMESTAMP}_${GITHASH} "
 echo "docker stop $did"
-echo "docker tag gridappsd/blazegraph:${TIMESTAMP} gridappsd/blazegraph:dev"
-echo "docker push gridappsd/blazegraph:${TIMESTAMP}"
-echo "docker push gridappsd/blazegraph:dev"
+echo "docker tag gridappsd/blazegraph:${TIMESTAMP}_${GITHASH} gridappsd/blazegraph:develop"
+echo "docker push gridappsd/blazegraph:${TIMESTAMP}_${GITHASH}"
+echo "docker push gridappsd/blazegraph:develop"
 
 exit 0

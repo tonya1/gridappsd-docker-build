@@ -56,7 +56,7 @@ http_status_container() {
 }
 
 url_viz="http://localhost:8080/"
-blazegraph_models="EPRI_DPV_J1.xml IEEE123.xml IEEE13.xml R2_12_47_2.xml IEEE8500.xml"
+blazegraph_models="EPRI_DPV_J1.xml IEEE123.xml IEEE13.xml R2_12_47_2.xml IEEE8500.xml ieee123_pv_CIM.xml"
 url_blazegraph="http://localhost:8889/bigdata/"
 data_dir="Powergrid-Models/blazegraph/Test"
 debug=0
@@ -81,18 +81,6 @@ shift `expr $OPTIND - 1`
 cwd=`pwd`
 
 echo " "
-echo "Pulling Powergrid-Models"
-if [ -d Powergrid-Models ]; then
-  cd Powergrid-Models
-  git pull -v
-  cd $cwd
-else
-  git clone http://github.com/GRIDAPPSD/Powergrid-Models
-fi
-
-GITHASH=`git -C Powergrid-Models log -1 --pretty=format:"%h"`
-
-echo " "
 echo "Getting blazegraph status"
 status=$(curl -s --head -w %{http_code} "$url_blazegraph" -o /dev/null)
 debug_msg "blazegraph curl status: $status"
@@ -104,7 +92,7 @@ TIMESTAMP=`date +'%y%m%d%H'`
 
 echo "TIMESTAMP $TIMESTAMP"
 
-docker build --build-arg TIMESTAMP="${TIMESTAMP}_${GITHASH}" -t gridappsd/blazegraph:build -f Dockerfile.gridappsd_blazegraph .
+docker build --build-arg TIMESTAMP="${TIMESTAMP}:${TRAVIS_BRANCH}" -t gridappsd/blazegraph:build -f Dockerfile.gridappsd_base_blazegraph .
 
 echo " "
 echo "Running the build container to load the data"
@@ -121,6 +109,15 @@ if [ "$status" -gt 0 ]; then
   echo "Exiting "
   exit 1
 fi
+
+if [ -d Powergrid-Models ]; then
+  cd Powergrid-Models
+  git pull -v
+  cd $cwd
+else
+  git clone -b develop http://github.com/GRIDAPPSD/Powergrid-Models
+fi
+
 
 http_status_container 'blazegraph'
 
@@ -140,7 +137,7 @@ if [ x"$rangeCount" == x"0" ]; then
     bz_status=`echo $curl_output | grep -c 'data modified='`
 
     if [ ${bz_status:-0} -ne 1 ]; then
-      echo "Error could not load blazegraph data $data_dir/$blazegraph_file"
+      echo "Error could not ingest blazegraph data file $data_dir/$blazegraph_file"
       echo $curl_output
       bz_load_status=1
     fi
@@ -149,50 +146,61 @@ if [ x"$rangeCount" == x"0" ]; then
   done
 
   if [ ${rangeCount:-0} -gt 0  -a $bz_load_status == 0 ]; then
-    echo "Finished uploading blazegraph data ($rangeCount)"
+    echo "Finished ingesting blazegraph data files ($rangeCount)"
   else
-    echo "Error loading blazegraph data ($rangeCount)"
+    echo "Error ingesting blazegraph data files ($rangeCount)"
     echo "Exiting "
     echo " "
     #echo $curl_output
     exit 1
   fi
 else
-  echo "Blazegrpah data has already been loaded ($rangeCount)"
+  echo "Error Blazegrpah already contains data ($rangeCount)"
+  exit 1
 fi
 
 echo " "
-echo "Done"
-
-
-
 
 # load the measurements 
 echo " "
 echo "Loading the measurements"
 
 echo " "
-echo "Modifying the Powergrid-Models/Meas/constants.py file"
+echo "Modifying the Powergrid-Models/Meas/constants.py file for loading data into local docker container"
 sed -i'.bak' -e 's/^blazegraph_url.*$/blazegraph_url = \"http:\/\/localhost:8889\/bigdata\/sparql\"/' Powergrid-Models/Meas/constants.py
 
 cd Powergrid-Models/Meas
-echo "----- list"
-./listall.sh
+[ ! -d tmp ] && mkdir tmp
+cd tmp
 
-echo "----- insertall"
-./insertall.sh
+echo " "
+echo "Generating measurments files"
+python ../ListFeeders.py | grep -v 'binding keys' | while read line; do
+  echo "  Generating measurements files for $line"
+  python ../ListMeasureables.py $line
+done
 
-echo "----- list"
-./listall.sh
+echo " "
+echo "Loading measurments files"
+for f in `ls -1 *txt`; do
+  echo "  Loading measurements file $f"
+  python ../InsertMeasurements.py $f
+done
 
+echo " "
+rangeCount=`curl -s -G -H 'Accept: application/xml' "${url_blazegraph}sparql" --data-urlencode ESTCARD | sed 's/.*rangeCount=\"\([0-9]*\)\".*/\1/'`
+echo "Finished uploading blazegraph measurements ($rangeCount)"
+
+#echo "----- list"
+#./listall.sh
 
 echo " "
 echo "Run these commands to commit the container and push the container to dockerhub"
 echo "----"
-echo "docker commit $did gridappsd/blazegraph:${TIMESTAMP}_${GITHASH} "
+echo "docker commit $did gridappsd/blazegraph:${TIMESTAMP} "
 echo "docker stop $did"
-echo "docker tag gridappsd/blazegraph:${TIMESTAMP}_${GITHASH} gridappsd/blazegraph:develop"
-echo "docker push gridappsd/blazegraph:${TIMESTAMP}_${GITHASH}"
-echo "docker push gridappsd/blazegraph:develop"
+echo "docker tag gridappsd/blazegraph:${TIMESTAMP} gridappsd/blazegraph:dev"
+echo "docker push gridappsd/blazegraph:${TIMESTAMP}"
+echo "docker push gridappsd/blazegraph:dev"
 
 exit 0

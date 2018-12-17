@@ -56,13 +56,13 @@ http_status_container() {
 }
 
 url_viz="http://localhost:8080/"
-blazegraph_models="EPRI_DPV_J1.xml IEEE123.xml IEEE13.xml R2_12_47_2.xml IEEE8500.xml"
+blazegraph_models="EPRI_DPV_J1.xml IEEE123.xml IEEE13.xml R2_12_47_2.xml IEEE8500.xml ieee123_pv_CIM.xml"
 url_blazegraph="http://localhost:8889/bigdata/"
 data_dir="Powergrid-Models/blazegraph/Test"
 debug=0
 exists=0
 # set the default tag for the gridappsd and viz containers
-GRIDAPPSD_TAG=':dev'
+GRIDAPPSD_TAG=':develop'
 
 # parse options
 while getopts dpt: option ; do
@@ -86,13 +86,13 @@ status=$(curl -s --head -w %{http_code} "$url_blazegraph" -o /dev/null)
 debug_msg "blazegraph curl status: $status"
 
 
-docker pull lyrasis/blazegraph:2.1.4
+#TJM docker pull lyrasis/blazegraph:2.1.4
 
 TIMESTAMP=`date +'%y%m%d%H'`
 
 echo "TIMESTAMP $TIMESTAMP"
 
-docker build --build-arg TIMESTAMP="${TIMESTAMP}:${TRAVIS_BRANCH}" -t gridappsd/blazegraph:build -f Dockerfile.gridappsd_base_blazegraph .
+#TJM docker build --build-arg TIMESTAMP="${TIMESTAMP}:${TRAVIS_BRANCH}" -t gridappsd/blazegraph:build -f Dockerfile.gridappsd_base_blazegraph .
 
 echo " "
 echo "Running the build container to load the data"
@@ -115,7 +115,7 @@ if [ -d Powergrid-Models ]; then
   git pull -v
   cd $cwd
 else
-  git clone http://github.com/GRIDAPPSD/Powergrid-Models
+  git clone -b develop http://github.com/GRIDAPPSD/Powergrid-Models
 fi
 
 
@@ -137,7 +137,7 @@ if [ x"$rangeCount" == x"0" ]; then
     bz_status=`echo $curl_output | grep -c 'data modified='`
 
     if [ ${bz_status:-0} -ne 1 ]; then
-      echo "Error could not load blazegraph data $data_dir/$blazegraph_file"
+      echo "Error could not ingest blazegraph data file $data_dir/$blazegraph_file"
       echo $curl_output
       bz_load_status=1
     fi
@@ -146,45 +146,53 @@ if [ x"$rangeCount" == x"0" ]; then
   done
 
   if [ ${rangeCount:-0} -gt 0  -a $bz_load_status == 0 ]; then
-    echo "Finished uploading blazegraph data ($rangeCount)"
+    echo "Finished ingesting blazegraph data files ($rangeCount)"
   else
-    echo "Error loading blazegraph data ($rangeCount)"
+    echo "Error ingesting blazegraph data files ($rangeCount)"
     echo "Exiting "
     echo " "
     #echo $curl_output
     exit 1
   fi
 else
-  echo "Blazegrpah data has already been loaded ($rangeCount)"
+  echo "Error Blazegrpah already contains data ($rangeCount)"
+  exit 1
 fi
 
 echo " "
-echo "Done"
-
-
-
 
 # load the measurements 
 echo " "
 echo "Loading the measurements"
 
 echo " "
-echo "Modifying the Powergrid-Models/Meas/constants.py file"
+echo "Modifying the Powergrid-Models/Meas/constants.py file for loading data into local docker container"
 sed -i'.bak' -e 's/^blazegraph_url.*$/blazegraph_url = \"http:\/\/localhost:8889\/bigdata\/sparql\"/' Powergrid-Models/Meas/constants.py
 
 cd Powergrid-Models/Meas
-echo "----- list"
-./listall.sh
+[ ! -d tmp ] && mkdir tmp
+cd tmp
 
-echo "----- insertall"
-./insertall.sh
+echo " "
+echo "Generating measurments files"
+python ../ListFeeders.py | grep -v 'binding keys' | while read line; do
+  echo "  Generating measurements files for $line"
+  python ../ListMeasureables.py $line
+done
 
-echo "----- insert"
-python InsertMeasurements.py ieee8500_rc1.bak
+echo " "
+echo "Loading measurments files"
+for f in `ls -1 *txt`; do
+  echo "  Loading measurements file $f"
+  python ../InsertMeasurements.py $f
+done
 
-echo "----- list"
-./listall.sh
+echo " "
+rangeCount=`curl -s -G -H 'Accept: application/xml' "${url_blazegraph}sparql" --data-urlencode ESTCARD | sed 's/.*rangeCount=\"\([0-9]*\)\".*/\1/'`
+echo "Finished uploading blazegraph measurements ($rangeCount)"
 
+#echo "----- list"
+#./listall.sh
 
 echo " "
 echo "Run these commands to commit the container and push the container to dockerhub"

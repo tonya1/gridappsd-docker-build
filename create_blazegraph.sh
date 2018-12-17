@@ -191,16 +191,13 @@ echo " "
 rangeCount=`curl -s -G -H 'Accept: application/xml' "${url_blazegraph}sparql" --data-urlencode ESTCARD | sed 's/.*rangeCount=\"\([0-9]*\)\".*/\1/'`
 echo "Finished uploading blazegraph measurements ($rangeCount)"
 
-#echo "----- list"
-#./listall.sh
-
 echo " "
 echo "Run these commands to commit the container and push the container to dockerhub"
 echo "----"
 echo "docker commit $did gridappsd/blazegraph:${TIMESTAMP} "
 echo "docker stop $did"
-echo "docker tag gridappsd/blazegraph:${TIMESTAMP} gridappsd/blazegraph:dev"
+echo "docker tag gridappsd/blazegraph:${TIMESTAMP} gridappsd/blazegraph:develop"
 echo "docker push gridappsd/blazegraph:${TIMESTAMP}"
-echo "docker push gridappsd/blazegraph:dev"
+echo "docker push gridappsd/blazegraph:develop"
 
 exit 0

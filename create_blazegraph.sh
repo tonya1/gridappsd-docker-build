@@ -77,9 +77,6 @@ while getopts dpt: option ; do
 done
 shift `expr $OPTIND - 1`
 
-
-cwd=`pwd`
-
 echo " "
 echo "Getting blazegraph status"
 status=$(curl -s --head -w %{http_code} "$url_blazegraph" -o /dev/null)
@@ -92,7 +89,7 @@ TIMESTAMP=`date +'%y%m%d%H'`
 
 echo "TIMESTAMP $TIMESTAMP"
 
-docker build --build-arg TIMESTAMP="${TIMESTAMP}:${TRAVIS_BRANCH}" -t gridappsd/blazegraph:build -f Dockerfile.gridappsd_base_blazegraph .
+docker build --build-arg TIMESTAMP="${TIMESTAMP}_${GITHASH}" -t gridappsd/blazegraph:build -f Dockerfile.gridappsd_blazegraph .
 
 echo " "
 echo "Running the build container to load the data"
@@ -110,6 +107,8 @@ if [ "$status" -gt 0 ]; then
   exit 1
 fi
 
+cwd=`pwd`
+
 if [ -d Powergrid-Models ]; then
   cd Powergrid-Models
   git pull -v
@@ -118,6 +117,7 @@ else
   git clone -b develop http://github.com/GRIDAPPSD/Powergrid-Models
 fi
 
+GITHASH=`git -C Powergrid-Models log -1 --pretty=format:"%h"`
 
 http_status_container 'blazegraph'
 
@@ -191,16 +191,13 @@ echo " "
 rangeCount=`curl -s -G -H 'Accept: application/xml' "${url_blazegraph}sparql" --data-urlencode ESTCARD | sed 's/.*rangeCount=\"\([0-9]*\)\".*/\1/'`
 echo "Finished uploading blazegraph measurements ($rangeCount)"
 
-#echo "----- list"
-#./listall.sh
-
 echo " "
 echo "Run these commands to commit the container and push the container to dockerhub"
 echo "----"
-echo "docker commit $did gridappsd/blazegraph:${TIMESTAMP} "
+echo "docker commit $did gridappsd/blazegraph:${TIMESTAMP}_${GITHASH} "
 echo "docker stop $did"
-echo "docker tag gridappsd/blazegraph:${TIMESTAMP} gridappsd/blazegraph:dev"
-echo "docker push gridappsd/blazegraph:${TIMESTAMP}"
-echo "docker push gridappsd/blazegraph:dev"
+echo "docker tag gridappsd/blazegraph:${TIMESTAMP}_${GITHASH} gridappsd/blazegraph:develop"
+echo "docker push gridappsd/blazegraph:${TIMESTAMP}_${GITHASH}"
+echo "docker push gridappsd/blazegraph:develop"
 
 exit 0

@@ -1,21 +1,3 @@
-# Create Network
+# gridappsd/gridappsd_base container
 
-````
-sudo docker network create -d bridge --subnet 192.168.0.0/24 --gateway 192.168.0.1 dockernet
-````
-
-# Start Containers
-
-````
-sudo docker-compose up
-````
-
-# Open browser
-
-Browse to http://localhost:8080
-
-# Close containers
-
-````
-sudo docker-compose down
-````
+This repository is used to build the base container for gridappsd.

@@ -42,7 +42,7 @@ http_status_container() {
   do
     status=$(curl -s --head -w %{http_code} "$url" -o /dev/null)
     debug_msg "curl status: $status"
-    sleep 1
+    sleep 2
     count=`expr $count + 1`
   done
   
@@ -58,7 +58,7 @@ http_status_container() {
 url_viz="http://localhost:8080/"
 blazegraph_models="EPRI_DPV_J1.xml IEEE123.xml IEEE13.xml R2_12_47_2.xml IEEE8500.xml ieee123_pv_CIM.xml"
 url_blazegraph="http://localhost:8889/bigdata/"
-data_dir="Powergrid-Models/blazegraph/Test"
+data_dir="Powergrid-Models/blazegraph/test"
 debug=0
 exists=0
 # set the default tag for the gridappsd and viz containers
@@ -114,7 +114,7 @@ if [ -d Powergrid-Models ]; then
   git pull -v
   cd $cwd
 else
-  git clone -b develop http://github.com/GRIDAPPSD/Powergrid-Models
+  git clone http://github.com/GRIDAPPSD/Powergrid-Models
 fi
 
 GITHASH=`git -C Powergrid-Models log -1 --pretty=format:"%h"`
@@ -170,7 +170,11 @@ echo "Modifying the Powergrid-Models/Meas/constants.py file for loading data int
 sed -i'.bak' -e 's/^blazegraph_url.*$/blazegraph_url = \"http:\/\/localhost:8889\/bigdata\/sparql\"/' Powergrid-Models/Meas/constants.py
 
 cd Powergrid-Models/Meas
-[ ! -d tmp ] && mkdir tmp
+if [ ! -d tmp ]; then 
+  mkdir tmp
+else
+  rm tmp/*txt 2> /dev/null
+fi
 cd tmp
 
 echo " "
@@ -179,6 +183,11 @@ python ../ListFeeders.py | grep -v 'binding keys' | while read line; do
   echo "  Generating measurements files for $line"
   python ../ListMeasureables.py $line
 done
+
+echo " "
+echo "Measurment checkpoint"
+shasum * | shasum | cut -d' ' -f1
+wc -l *txt | grep total
 
 echo " "
 echo "Loading measurments files"
@@ -192,10 +201,14 @@ rangeCount=`curl -s -G -H 'Accept: application/xml' "${url_blazegraph}sparql" --
 echo "Finished uploading blazegraph measurements ($rangeCount)"
 
 echo " "
-echo "Run these commands to commit the container and push the container to dockerhub"
 echo "----"
 echo "docker commit $did gridappsd/blazegraph:${TIMESTAMP}_${GITHASH} "
+docker commit $did gridappsd/blazegraph:${TIMESTAMP}_${GITHASH}
 echo "docker stop $did"
+docker stop $did
+echo " "
+echo "Run these commands to commit the container and push the container to dockerhub"
+echo "----"
 echo "docker tag gridappsd/blazegraph:${TIMESTAMP}_${GITHASH} gridappsd/blazegraph:develop"
 echo "docker push gridappsd/blazegraph:${TIMESTAMP}_${GITHASH}"
 echo "docker push gridappsd/blazegraph:develop"

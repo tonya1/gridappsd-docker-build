@@ -179,17 +179,27 @@ cd tmp
 
 echo " "
 echo "Generating measurments files"
-python ../ListFeeders.py | grep -v 'binding keys' | while read line; do
+python3 ../ListFeeders.py | grep -v 'binding keys' | while read line; do
   echo "  Generating measurements files for $line"
-  python ../ListMeasureables.py $line
+  python3 ../ListMeasureables.py $line
 done
 
 echo " "
 echo "Measurment checkpoint"
 shasum * | shasum | cut -d' ' -f1
+echo "---"
+for a in `ls | awk -F"_" '{print $1}' | sort -u`; do
+  echo -n "$a "
+  shasum ${a}* | shasum | cut -d' ' -f1
+done
+echo "---"
+echo -n "Lines: "
 wc -l *txt | grep total | awk '{print $1}'
+echo "---"
 echo $GITHASH
-
+echo "---"
+python3 --version
+echo "---"
 docker stop $did
 exit
 
@@ -197,7 +207,7 @@ echo " "
 echo "Loading measurments files"
 for f in `ls -1 *txt`; do
   echo "  Loading measurements file $f"
-  python ../InsertMeasurements.py $f
+  python3 ../InsertMeasurements.py $f
 done
 
 echo " "

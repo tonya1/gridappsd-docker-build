@@ -187,7 +187,11 @@ done
 echo " "
 echo "Measurment checkpoint"
 shasum * | shasum | cut -d' ' -f1
-wc -l *txt | grep total
+wc -l *txt | grep total | awk '{print $1}'
+echo $GITHASH
+
+docker stop $did
+exit
 
 echo " "
 echo "Loading measurments files"

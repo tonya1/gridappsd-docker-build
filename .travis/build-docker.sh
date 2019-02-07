@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TAG="$TRAVIS_BRANCH//\//_"
+TAG="${TRAVIS_BRANCH//\//_}"
 
 ORG=`echo $DOCKER_PROJECT | tr '[:upper:]' '[:lower:]'`
 ORG="${ORG:-gridappsd}"

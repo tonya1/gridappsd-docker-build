@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TAG="$TRAVIS_BRANCH"
+TAG="${TRAVIS_BRANCH//\//_}"
 
 ORG=`echo $DOCKER_PROJECT | tr '[:upper:]' '[:lower:]'`
 ORG="${ORG:-gridappsd}"
@@ -58,6 +58,7 @@ if [ -n "$DOCKER_USERNAME" -a -n "$DOCKER_PASSWORD" ]; then
   fi
 
   if [ -n "$TAG" -a -n "$ORG" ]; then
+    # Get the built container name
     CONTAINER=`docker images --format "{{.Repository}}:{{.Tag}}" ${IMAGE}`
 
     echo "docker push ${CONTAINER}"

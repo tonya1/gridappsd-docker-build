@@ -90,7 +90,7 @@ RUN cd $TEMP_DIR \
 # ----------------------------------------------------
 
 RUN cd $TEMP_DIR \
-    && git clone https://github.com/gridlab-d/gridlab-d.git -b feature/1146 --single-branch \
+    && git clone https://github.com/gridlab-d/gridlab-d.git -b develop --single-branch \
     && cd ${TEMP_DIR}/gridlab-d/third_party \
     && tar -xzf xerces-c-3.2.0.tar.gz \
     && cd ${TEMP_DIR}/gridlab-d/third_party/xerces-c-3.2.0 \

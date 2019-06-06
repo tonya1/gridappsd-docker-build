@@ -56,7 +56,7 @@ http_status_container() {
 }
 
 url_viz="http://localhost:8080/"
-blazegraph_models="EPRI_DPV_J1.xml IEEE123.xml IEEE13.xml R2_12_47_2.xml IEEE8500.xml ieee123_pv_CIM.xml"
+blazegraph_models="ACEP_PSIL.xml EPRI_DPV_J1.xml IEEE123.xml IEEE123_PV.xml IEEE13.xml IEEE13_Assets.xml IEEE8500.xml IEEE8500_3subs.xml R2_12_47_2.xml"
 url_blazegraph="http://localhost:8889/bigdata/"
 data_dir="Powergrid-Models/blazegraph/test"
 debug=0
@@ -114,7 +114,11 @@ if [ -d Powergrid-Models ]; then
   git pull -v
   cd $cwd
 else
-  git clone http://github.com/GRIDAPPSD/Powergrid-Models
+  git clone http://github.com/GRIDAPPSD/Powergrid-Models -b develop
+  #cd Powergrid-Models
+  #git checkout -b cim100 origin/cim100
+  #git merge develop
+  #cd ..
 fi
 
 GITHASH=`git -C Powergrid-Models log -1 --pretty=format:"%h"`
@@ -199,6 +203,7 @@ done
 echo " "
 rangeCount=`curl -s -G -H 'Accept: application/xml' "${url_blazegraph}sparql" --data-urlencode ESTCARD | sed 's/.*rangeCount=\"\([0-9]*\)\".*/\1/'`
 echo "Finished uploading blazegraph measurements ($rangeCount)"
+
 
 echo " "
 echo "----"

@@ -1,5 +1,5 @@
 # This is a xenial base with python 3.5 as well
-FROM sgoblin/python3.5:latest
+FROM python:3.7.3-slim-strech
 
 #FROM ubuntu:xenial
 

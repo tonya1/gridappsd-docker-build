@@ -130,15 +130,15 @@ RUN apt update \
 # INSTALL Activemq c++ extensions
 # ----------------------------------------------------
 RUN cd ${TEMP_DIR} \
-    && wget http://mirror.olnevhost.net/pub/apache/activemq/activemq-cpp/3.9.5/activemq-cpp-library-3.9.5-src.tar.gz \
-    && tar -xzf activemq-cpp-library-3.9.5-src.tar.gz \
-    && cd activemq-cpp-library-3.9.5 \
+    && wget http://archive.apache.org/dist/activemq/activemq-cpp/3.9.4/activemq-cpp-library-3.9.4-src.tar.gz \
+    && tar -xzf activemq-cpp-library-3.9.4-src.tar.gz \
+    && cd activemq-cpp-library-3.9.4 \
     && ./configure --prefix=${FNCS_INSTALL} \
     && make \
     && make install \
     && cd /tmp \
-    && /bin/rm -r ${TEMP_DIR}/activemq-cpp-library-3.9.5 \
-    && /bin/rm -r ${TEMP_DIR}/activemq-cpp-library-3.9.5-src.tar.gz 
+    && /bin/rm -r ${TEMP_DIR}/activemq-cpp-library-3.9.4 \
+    && /bin/rm -r ${TEMP_DIR}/activemq-cpp-library-3.9.4-src.tar.gz 
 
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64

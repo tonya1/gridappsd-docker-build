@@ -121,23 +121,16 @@ RUN cd $TEMP_DIR \
 # INSTALL Java
 # ----------------------------------------------------
 
-# auto validate license
-RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections \
-    # update repos
-    && echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee /etc/apt/sources.list.d/webupd8team-java.list \
-    && echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee -a /etc/apt/sources.list.d/webupd8team-java.list \
-    && apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886 \
-    && apt-get update \
-    # install java
-    && apt-get install oracle-java8-installer -y \
-    && apt-get clean
-
+RUN apt update \
+     && mkdir -p /usr/share/man/man1 \
+     && apt install -y openjdk-8-jdk-headless \
+     && apt-get clean
 
 # ----------------------------------------------------
 # INSTALL Activemq c++ extensions
 # ----------------------------------------------------
 RUN cd ${TEMP_DIR} \
-    && wget http://mirror.olnevhost.net/pub/apache/activemq/activemq-cpp/3.9.4/activemq-cpp-library-3.9.4-src.tar.gz \
+    && wget http://archive.apache.org/dist/activemq/activemq-cpp/3.9.4/activemq-cpp-library-3.9.4-src.tar.gz \
     && tar -xzf activemq-cpp-library-3.9.4-src.tar.gz \
     && cd activemq-cpp-library-3.9.4 \
     && ./configure --prefix=${FNCS_INSTALL} \
@@ -148,6 +141,4 @@ RUN cd ${TEMP_DIR} \
     && /bin/rm -r ${TEMP_DIR}/activemq-cpp-library-3.9.4-src.tar.gz 
 
 
-ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
-
-
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64

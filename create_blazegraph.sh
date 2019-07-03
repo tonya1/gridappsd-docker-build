@@ -114,7 +114,7 @@ if [ -d Powergrid-Models ]; then
   git pull -v
   cd $cwd
 else
-  git clone http://github.com/GRIDAPPSD/Powergrid-Models -b develop
+  git clone http://github.com/GRIDAPPSD/Powergrid-Models 
 fi
 
 GITHASH=`git -C Powergrid-Models log -1 --pretty=format:"%h"`

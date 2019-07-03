@@ -1,5 +1,5 @@
 # This is a xenial base with python 3.5 as well
-FROM sgoblin/python3.5:latest
+FROM python:3.7.3-slim-stretch
 
 #FROM ubuntu:xenial
 
@@ -12,8 +12,8 @@ RUN apt-get update \
        automake \
        autoconf \
        make \
-       g++ \
-       gcc \
+       g++-6 \
+       gcc-6 \
        libtool \
        ca-certificates \
        openssl \
@@ -24,14 +24,18 @@ RUN apt-get update \
        python-pip \
        sudo \
        vim \
+    && sudo /usr/bin/update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 1 \
+    && sudo /usr/bin/update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 1 \
+    && sudo sudo /usr/bin/update-alternatives  --set gcc /usr/bin/gcc-6 \
+    && sudo sudo /usr/bin/update-alternatives  --set g++ /usr/bin/g++-6 \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/archives/*
 
 ENV GRIDAPPSD=/gridappsd
 ENV FNCS_INSTALL=${GRIDAPPSD}
 ENV GLD_INSTALL=${GRIDAPPSD}
-ENV CZMQ_VERSION 3.0.2
-ENV ZMQ_VERSION 4.0.2
+ENV CZMQ_VERSION 4.2.0
+ENV ZMQ_VERSION 4.3.1
 ENV TEMP_DIR=/tmp/source
 
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${FNCS_INSTALL}/lib
@@ -47,7 +51,7 @@ ENV FNCS_LOG_LEVEL=DEBUG1
 
 RUN mkdir ${TEMP_DIR} \
     && cd ${TEMP_DIR} \
-    && wget http://download.zeromq.org/zeromq-${ZMQ_VERSION}.tar.gz \
+    && wget http://github.com/zeromq/libzmq/releases/download/v${ZMQ_VERSION}/zeromq-${ZMQ_VERSION}.tar.gz \
     && tar -xzf zeromq-${ZMQ_VERSION}.tar.gz \
     && cd ${TEMP_DIR}/zeromq-${ZMQ_VERSION} \
     && ./configure --prefix=${FNCS_INSTALL} \
@@ -57,16 +61,24 @@ RUN mkdir ${TEMP_DIR} \
     && /bin/rm -r ${TEMP_DIR}/zeromq-${ZMQ_VERSION} \
     && /bin/rm ${TEMP_DIR}/zeromq-${ZMQ_VERSION}.tar.gz
 
+ENV CFLAGS=-I${FNCS_INSTALL}/include
+ENV LDFLAGS=-L${FNCS_INSTALL}/lib
+ENV PKG_CONFIG_PATH=${FNCS_INSTALL}/lib/pkgconfig
+
 RUN cd ${TEMP_DIR} \
-    && wget https://archive.org/download/zeromq_czmq_${CZMQ_VERSION}/czmq-${CZMQ_VERSION}.tar.gz \
+    && wget https://github.com/zeromq/czmq/releases/download/v${CZMQ_VERSION}/czmq-${CZMQ_VERSION}.tar.gz \
     && tar -xzf czmq-${CZMQ_VERSION}.tar.gz \
     && cd ${TEMP_DIR}/czmq-${CZMQ_VERSION} \
-    && ./configure --prefix=${FNCS_INSTALL} --with-libzmq=${FNCS_INSTALL} \
+    && ./configure --prefix=${FNCS_INSTALL} \
     && make \
     && make install \
     && cd /tmp \
     && /bin/rm -r ${TEMP_DIR}/czmq-${CZMQ_VERSION} \
     && /bin/rm ${TEMP_DIR}/czmq-${CZMQ_VERSION}.tar.gz
+
+ENV CLFAGS=
+ENV LDFLAGS=
+ENV PKG_CONFIG_PATH=
 
 # ----------------------------------------------------
 # INSTALL FNCS
@@ -90,7 +102,7 @@ RUN cd $TEMP_DIR \
 # ----------------------------------------------------
 
 RUN cd $TEMP_DIR \
-    && git clone https://github.com/gridlab-d/gridlab-d.git -b feature/1146 --single-branch \
+    && git clone https://github.com/gridlab-d/gridlab-d.git -b develop --single-branch \
     && cd ${TEMP_DIR}/gridlab-d/third_party \
     && tar -xzf xerces-c-3.2.0.tar.gz \
     && cd ${TEMP_DIR}/gridlab-d/third_party/xerces-c-3.2.0 \
@@ -99,7 +111,7 @@ RUN cd $TEMP_DIR \
     && make install \
     && cd ${TEMP_DIR}/gridlab-d \
     && autoreconf -if \
-    && ./configure --prefix=$GLD_INSTALL --with-fncs=$FNCS_INSTALL --enable-silent-rules 'CFLAGS=-g -O0 -w' 'CXXFLAGS=-g -O0 -w -std=c++11' 'LDFLAGS=-g -O0 -w' \
+    && ./configure --prefix=$GLD_INSTALL --with-fncs=$FNCS_INSTALL --enable-silent-rules 'CFLAGS=-g -O2 -w' 'CXXFLAGS=-g -O2 -w -std=c++11' 'LDFLAGS=-g -O2 -w' \
     && make \
     && make install \
     && cd /tmp \
@@ -109,23 +121,16 @@ RUN cd $TEMP_DIR \
 # INSTALL Java
 # ----------------------------------------------------
 
-# auto validate license
-RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections \
-    # update repos
-    && echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee /etc/apt/sources.list.d/webupd8team-java.list \
-    && echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee -a /etc/apt/sources.list.d/webupd8team-java.list \
-    && apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886 \
-    && apt-get update \
-    # install java
-    && apt-get install oracle-java8-installer -y \
-    && apt-get clean
-
+RUN apt update \
+     && mkdir -p /usr/share/man/man1 \
+     && apt install -y openjdk-8-jdk-headless \
+     && apt-get clean
 
 # ----------------------------------------------------
 # INSTALL Activemq c++ extensions
 # ----------------------------------------------------
 RUN cd ${TEMP_DIR} \
-    && wget http://mirror.olnevhost.net/pub/apache/activemq/activemq-cpp/3.9.4/activemq-cpp-library-3.9.4-src.tar.gz \
+    && wget http://archive.apache.org/dist/activemq/activemq-cpp/3.9.4/activemq-cpp-library-3.9.4-src.tar.gz \
     && tar -xzf activemq-cpp-library-3.9.4-src.tar.gz \
     && cd activemq-cpp-library-3.9.4 \
     && ./configure --prefix=${FNCS_INSTALL} \
@@ -136,6 +141,4 @@ RUN cd ${TEMP_DIR} \
     && /bin/rm -r ${TEMP_DIR}/activemq-cpp-library-3.9.4-src.tar.gz 
 
 
-ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
-
-
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64

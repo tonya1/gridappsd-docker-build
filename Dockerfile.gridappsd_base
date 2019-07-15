@@ -11,6 +11,7 @@ RUN apt-get update \
        git \
        automake \
        autoconf \
+       cmake \
        make \
        g++-6 \
        gcc-6 \

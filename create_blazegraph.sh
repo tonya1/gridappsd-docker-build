@@ -95,7 +95,7 @@ echo " "
 echo "Running the build container to load the data"
 
 # start it with the proper conf file
-did=`docker run -d -p 8889:8080 gridappsd/blazegraph:build`
+did=`docker run --cpuset-cpus "0-3" -d -p 8889:8080 gridappsd/blazegraph:build`
 status=$?
 
 echo "$did $status"
@@ -115,10 +115,6 @@ if [ -d Powergrid-Models ]; then
   cd $cwd
 else
   git clone http://github.com/GRIDAPPSD/Powergrid-Models -b develop
-  #cd Powergrid-Models
-  #git checkout -b cim100 origin/cim100
-  #git merge develop
-  #cd ..
 fi
 
 GITHASH=`git -C Powergrid-Models log -1 --pretty=format:"%h"`
@@ -164,6 +160,9 @@ else
 fi
 
 echo " "
+echo "docker commit $did gridappsd/blazegraph:${TIMESTAMP}_${GITHASH}_models "
+docker commit $did gridappsd/blazegraph:${TIMESTAMP}_${GITHASH}_models
+echo " "
 
 # load the measurements 
 echo " "
@@ -195,14 +194,45 @@ wc -l *txt | grep total | awk '{print $1}'
 
 echo " "
 echo "Loading measurements files"
-for f in `ls -1 *txt`; do
-  echo "  Loading measurements file $f"
-  python3 ../InsertMeasurements.py $f
+ls -1 *txt | xargs -P 12 -n 1 -I, bash -c 'echo "  Loading measurments file ,";python3 ../InsertMeasurements.py ,'
+
+echo " "
+rangeCount=`curl -s -G -H 'Accept: application/xml' "${url_blazegraph}sparql" --data-urlencode ESTCARD | sed 's/.*rangeCount=\"\([0-9]*\)\".*/\1/'`
+echo "Finished loading blazegraph measurements ($rangeCount)"
+echo " "
+echo "docker commit $did gridappsd/blazegraph:${TIMESTAMP}_${GITHASH}_measurements "
+docker commit $did gridappsd/blazegraph:${TIMESTAMP}_${GITHASH}_measurements
+
+cd ../../houses
+# assign random climate zones (1-5) to lookup
+zone_acep_psil=1
+zone_ieee123=2
+zone_ieee123pv=3
+zone_ieee13nodeckt=4
+zone_ieee13nodecktassets=5
+zone_ieee8500=3
+zone_ieee8500new_335=4
+zone_j1=1
+zone_sourceckt=2
+
+echo " "
+echo "Loading houses"
+python3 ../Meas/ListFeeders.py | grep -v 'binding keys' | while read fdrname fdrid ; do
+  # use lookup
+  climate_zone="zone_$fdrname"
+  echo "  Loading houses for $fdrname : $fdrid : ${!climate_zone}"
+  python3 insertHouses.py $fdrid ${!climate_zone}
+  status=$?
+  if [ $status -gt 0 ]; then
+    echo " "
+    echo "  Failed loading houses for $fdrname: python3 insertHouses.py $fdrid ${!climate_zone}"
+    echo " "
+  fi
 done
 
 echo " "
 rangeCount=`curl -s -G -H 'Accept: application/xml' "${url_blazegraph}sparql" --data-urlencode ESTCARD | sed 's/.*rangeCount=\"\([0-9]*\)\".*/\1/'`
-echo "Finished uploading blazegraph measurements ($rangeCount)"
+echo "Finished loading blazegraph houses ($rangeCount)"
 
 
 echo " "

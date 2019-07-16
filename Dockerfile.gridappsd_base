@@ -11,6 +11,7 @@ RUN apt-get update \
        git \
        automake \
        autoconf \
+       cmake \
        make \
        g++-6 \
        gcc-6 \
@@ -140,5 +141,11 @@ RUN cd ${TEMP_DIR} \
     && /bin/rm -r ${TEMP_DIR}/activemq-cpp-library-3.9.4 \
     && /bin/rm -r ${TEMP_DIR}/activemq-cpp-library-3.9.4-src.tar.gz 
 
+# ----------------------------------------------------
+# INSTALL Python requirements 
+# ----------------------------------------------------
+COPY ./requirements_base.txt /gridappsd/requirements_base.txt
+RUN pip install -r /gridappsd/requirements_base.txt && \
+  rm -rf /root/.cache/pip/wheels
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64

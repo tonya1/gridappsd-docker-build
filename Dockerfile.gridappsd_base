@@ -25,6 +25,11 @@ RUN apt-get update \
        python-pip \
        sudo \
        vim \
+       # state-estimator \
+       m4 \
+       liblapack-dev \
+       libblas-dev \
+       libssl-dev \
     && sudo /usr/bin/update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 1 \
     && sudo /usr/bin/update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 1 \
     && sudo sudo /usr/bin/update-alternatives  --set gcc /usr/bin/gcc-6 \

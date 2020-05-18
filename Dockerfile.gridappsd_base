@@ -166,7 +166,7 @@ RUN cd ${TEMP_DIR} \
   && mkdir -p /gridappsd/services/gridappsd-state-estimator \
   && rm -rf .git SuiteSparse/.git json.git \
   && cp -r * /gridappsd/services/gridappsd-state-estimator \
-  && cp /gridappsd/services/gridappsd-state-estimator/state-estimator.config /gridappsd/services/
+  && cp /gridappsd/services/gridappsd-state-estimator/state-estimator.config /gridappsd/services/ \
   && cd /tmp \
   && /bin/rm -r ${TEMP_DIR}/gridappsd-state-estimator
 

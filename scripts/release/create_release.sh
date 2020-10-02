@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION="2019.12.0"
+VERSION="2020.10.0"
 
 user="YOURGITHUBUSERNAME"
 TOKEN="YOURGITHUBTOKEN"
@@ -9,7 +9,7 @@ OWNER="GRIDAPPSD"
 gh="https://github.com/gridappsd/"
 
 # 2019.12.0 
-repos="GOSS-GridAPPS-D gridappsd-viz gridappsd-sample-app proven-docker gridappsd-docker-build gridappsd-data gridappsd-docker gridappsd-python Powergrid-Models"
+repos="GOSS-GridAPPS-D gridappsd-viz gridappsd-sample-app proven-docker gridappsd-docker-build gridappsd-data gridappsd-docker gridappsd-python Powergrid-Models gridappsd-sensor-simulator gridappsd-testing"
 
 VERSIONU=$(echo $VERSION | sed 's/\./-/'g)
 
@@ -143,10 +143,15 @@ case "$status" in
     done
     echo " "
     echo "Creating gridappsd/blazegraph:v$VERSION"
-    docker tag gridappsd/blazegraph:develop gridappsd/blazegraph:v$VERSION
     echo "docker tag gridappsd/blazegraph:develop gridappsd/blazegraph:v$VERSION"
-    docker push gridappsd/blazegraph:v$VERSION
+    docker tag gridappsd/blazegraph:develop gridappsd/blazegraph:v$VERSION
+    echo "docker tag gridappsd/blazegraph:develop gridappsd/blazegraph:latest"
+    docker tag gridappsd/blazegraph:develop gridappsd/blazegraph:latest
+    echo "docker push gridappsd/blazegraph:latest"
+    docker push gridappsd/blazegraph:latest
     echo "docker push gridappsd/blazegraph:v$VERSION"
+    docker push gridappsd/blazegraph:v$VERSION
+
     echo "Step3 Complete" > $release_status
     echo " "
     echo " "
@@ -159,9 +164,4 @@ case "$status" in
       echo "Something didn't work correctly"
       exit 1
 esac
-
-
-
-
-
 

@@ -55,8 +55,37 @@ http_status_container() {
   fi
 }
 
+
+build_dir=bzbuild/build_$(date +"%Y%m%d%H%M%S")
+
+if [ -d $build_dir ]; then
+  echo "$build_dir exists"
+  echo "Exiting..."
+  exit 1
+fi
+
+mkdir -p $build_dir
+cp $0 $build_dir
+cp Dockerfile.gridappsd_blazegraph $build_dir
+cp -rp ./conf/rwstore.properties $build_dir
+cd $build_dir
+
+# Close STDOUT file descriptor
+exec 1<&-
+# Close STDERR FD
+exec 2<&-
+
+# Open STDOUT as $LOG_FILE file for read and write.
+exec 1<>create.log
+
+# Redirect STDERR to STDOUT
+exec 2>&1
+
+date
+
 url_viz="http://localhost:8080/"
-blazegraph_models="ACEP_PSIL.xml EPRI_DPV_J1.xml IEEE123.xml IEEE123_PV.xml IEEE13.xml IEEE13_Assets.xml IEEE8500.xml IEEE8500_3subs.xml R2_12_47_2.xml"
+blazegraph_models="ACEP_PSIL.xml EPRI_DPV_J1.xml IEEE123_PV.xml IEEE123.xml IEEE13_Assets.xml IEEE13.xml IEEE8500_3subs.xml IEEE8500.xml R2_12_47_2.xml Transactive.xml"
+
 url_blazegraph="http://localhost:8889/bigdata/"
 data_dir="Powergrid-Models/blazegraph/test"
 debug=0
@@ -115,6 +144,8 @@ if [ -d Powergrid-Models ]; then
   cd $cwd
 else
   git clone http://github.com/GRIDAPPSD/Powergrid-Models -b develop
+  #git clone http://github.com/GRIDAPPSD/Powergrid-Models -b feature/1289
+  #git clone http://github.com/GRIDAPPSD/Powergrid-Models -b issue/1173
 fi
 
 GITHASH=`git -C Powergrid-Models log -1 --pretty=format:"%h"`
@@ -205,15 +236,17 @@ docker commit $did gridappsd/blazegraph:${TIMESTAMP}_${GITHASH}_measurements
 
 cd ../../houses
 # assign random climate zones (1-5) to lookup
+zone_ieee123pv=5
+zone_ieee8500=3
+zone_ieee123transactive=2
+zone_test9500new=3
+zone_sourceckt=2
 zone_acep_psil=1
 zone_ieee123=2
-zone_ieee123pv=3
 zone_ieee13nodeckt=4
 zone_ieee13nodecktassets=5
-zone_ieee8500=3
-zone_ieee8500new_335=4
 zone_j1=1
-zone_sourceckt=2
+#zone_ieee8500new_335=4
 
 echo " "
 echo "Loading houses"
@@ -248,4 +281,5 @@ echo "docker tag gridappsd/blazegraph:${TIMESTAMP}_${GITHASH} gridappsd/blazegra
 echo "docker push gridappsd/blazegraph:${TIMESTAMP}_${GITHASH}"
 echo "docker push gridappsd/blazegraph:develop"
 
+date
 exit 0

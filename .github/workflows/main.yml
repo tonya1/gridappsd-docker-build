@@ -14,8 +14,8 @@ jobs:
       - name: Build and Push image
         run: |
 
-          TAG="echo ${GITHUB_REF##*/}"
-          ORG=`echo ${{ secrets.DOCKER_PROJECT }}" | tr '[:upper:]' '[:lower:]'`
+          TAG="${GITHUB_REF##*/}"
+          ORG=`echo "${{ secrets.DOCKER_PROJECT }}" | tr '[:upper:]' '[:lower:]'`
           ORG="${ORG:-gridappsd}"
           ORG="${ORG:+${ORG}/}"
           IMAGE="${ORG}gridappsd_base"

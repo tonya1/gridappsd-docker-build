@@ -15,7 +15,7 @@ jobs:
         run: |
 
           TAG="${GITHUB_REF##*/}"
-          ORG=`echo ${{ secrets.$DOCKER_PROJECT }}" | tr '[:upper:]' '[:lower:]'`
+          ORG=`echo ${{ secrets.DOCKER_PROJECT }}" | tr '[:upper:]' '[:lower:]'`
           ORG="${ORG:-gridappsd}"
           ORG="${ORG:+${ORG}/}"
           IMAGE="${ORG}gridappsd_base"

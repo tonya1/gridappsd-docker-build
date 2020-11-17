@@ -3,7 +3,7 @@ on: [push]
 jobs:
   push:
     runs-on: ubuntu-latest
-    name: Build and push the docker contianer
+    name: Build and push the docker container
     steps:
       - uses: actions/checkout@v2
 

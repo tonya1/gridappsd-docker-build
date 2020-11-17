@@ -5,14 +5,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and push the docker contianer
     steps:
-     #- name: Build image
-     #   run: docker build . --build-arg TIMESTAMP="${BUILD_VERSION} --file Dockerfile.gridappsd_base --tag $IMAGE_NAME
-
-      #- name: Log into registry
-        #run: echo "${{ secrets.DOCKER_TOKEN }}" | docker login docker.com -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
       - uses: actions/checkout@v2
 
-      - name: Build and Push image
+      - name: Build the image
         run: |
 
           TAG="${GITHUB_REF##*/}"
@@ -23,19 +18,9 @@ jobs:
           TIMESTAMP=`date +'%y%m%d%H'`
           GITHASH=`git log -1 --pretty=format:"%h"`
 
-          BUILD_VERSION="${TIMESTAMP}_${GITHASH}${TRAVIS_BRANCH:+:$TRAVIS_BRANCH}"
+          BUILD_VERSION="${TIMESTAMP}_${GITHASH}${BRANCH:+:$TAG}"
           echo "BUILD_VERSION $BUILD_VERSION"
-
-          ## Strip git ref prefix from version
-          #VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          ## Strip "v" prefix from tag name
-          #[[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-          ## Use Docker `latest` tag convention
-          #[ "$VERSION" == "$default-branch" ] && VERSION=latest
-          #echo IMAGE_ID=$IMAGE_ID
-          #echo VERSION=$VERSION
-          #docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
-          #docker push $IMAGE_ID:$VERSION
+          echo "TAG ${IMAGE}:${TIMESTAMP}_${GITHASH}"
 
           # Pass gridappsd tag to docker-compose
           docker build --no-cache --rm=true --build-arg TIMESTAMP="${BUILD_VERSION}" -f Dockerfile.gridappsd_base -t ${IMAGE}:${TIMESTAMP}_${GITHASH} .
@@ -44,14 +29,10 @@ jobs:
             echo "Error: status $status"
             exit 1
           fi
-          
-          # To have `DOCKER_USERNAME` and `DOCKER_PASSWORD`
-          # filled you need to either use `travis`' cli
-          # (https://github.com/travis-ci/travis.rb)
-          # and then `travis set ..` or go to the travis
-          # page of your repository and then change the
-          # environment in the settings pannel.
-          
+
+      - name: Log in to docker
+        run: |
+
           if [ -n "${{ secrets.DOCKER_USERNAME }}" -a -n "${{ secrets.DOCKER_TOKEN }}" ]; then
           
             echo " "
@@ -63,6 +44,19 @@ jobs:
               echo "Error: status $status"
               exit 1
             fi
+          fi
+          
+
+      - name: Push the image
+        run: |
+
+          TAG="${GITHUB_REF##*/}"
+          ORG=`echo "${{ secrets.DOCKER_PROJECT }}" | tr '[:upper:]' '[:lower:]'`
+          ORG="${ORG:-gridappsd}"
+          ORG="${ORG:+${ORG}/}"
+          IMAGE="${ORG}gridappsd_base"
+
+          if [ -n "${{ secrets.DOCKER_USERNAME }}" -a -n "${{ secrets.DOCKER_TOKEN }}" ]; then
           
             if [ -n "$TAG" -a -n "$ORG" ]; then
               # Get the built container name

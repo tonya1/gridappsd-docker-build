@@ -153,4 +153,24 @@ COPY ./requirements_base.txt /gridappsd/requirements_base.txt
 RUN pip install -r /gridappsd/requirements_base.txt && \
   rm -rf /root/.cache/pip/wheels
 
+# ----------------------------------------------------
+# INSTALL State Estimator
+# ----------------------------------------------------
+RUN cd ${TEMP_DIR} \
+  && git clone https://github.com/GRIDAPPSD/gridappsd-state-estimator \
+  && cd gridappsd-state-estimator \
+  && git clone https://github.com/GRIDAPPSD/SuiteSparse \
+  && git clone https://github.com/GRIDAPPSD/json \
+  && make -C SuiteSparse LAPACK=-llapack BLAS=-lblas \
+  && make -C state-estimator \
+  && mkdir -p /gridappsd/services/gridappsd-state-estimator \
+  && rm -rf .git SuiteSparse/.git json.git \
+  && cp -r * /gridappsd/services/gridappsd-state-estimator \
+  && cp /gridappsd/services/gridappsd-state-estimator/state-estimator.config /gridappsd/services/ \
+  && cd /tmp \
+  && /bin/rm -r ${TEMP_DIR}/gridappsd-state-estimator
+
+# ----------------------------------------------------
+# Set the JAVA_HOME variable 
+# ----------------------------------------------------
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64

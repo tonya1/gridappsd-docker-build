@@ -28,7 +28,7 @@ RUN apt-get update \
        # state-estimator \
        liblapack-dev \
        libblas-dev \
-       libssl1.0-dev \
+       #libssl1.0-dev \
        # helics \
        libboost-dev \
        libzmq5-dev \

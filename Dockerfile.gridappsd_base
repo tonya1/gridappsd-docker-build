@@ -20,7 +20,7 @@ RUN apt-get update \
        openssl \
        # These two for activemq \       
        libaprutil1-dev \
-       mysql-client \
+       default-mysql-client \
        python-dev \ 
        python-pip \
        sudo \

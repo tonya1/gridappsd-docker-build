@@ -1,5 +1,5 @@
 # This is a xenial base with python 3.5 as well
-FROM python:3.7.3-slim-stretch
+FROM python:3.8.7-slim-buster
 
 #FROM ubuntu:xenial
 

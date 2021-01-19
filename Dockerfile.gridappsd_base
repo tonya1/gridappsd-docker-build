@@ -13,8 +13,8 @@ RUN apt-get update \
        autoconf \
        cmake \
        make \
-       g++-6 \
-       gcc-6 \
+       g++-8 \
+       gcc-8 \
        libtool \
        ca-certificates \
        openssl \
@@ -33,10 +33,10 @@ RUN apt-get update \
        libboost-dev \
        libzmq5-dev \
        m4 \
-    && sudo /usr/bin/update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 1 \
-    && sudo /usr/bin/update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 1 \
-    && sudo sudo /usr/bin/update-alternatives  --set gcc /usr/bin/gcc-6 \
-    && sudo sudo /usr/bin/update-alternatives  --set g++ /usr/bin/g++-6 \
+    && sudo /usr/bin/update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 1 \
+    && sudo /usr/bin/update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 1 \
+    && sudo sudo /usr/bin/update-alternatives  --set gcc /usr/bin/gcc-8 \
+    && sudo sudo /usr/bin/update-alternatives  --set g++ /usr/bin/g++-8 \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/archives/*
 

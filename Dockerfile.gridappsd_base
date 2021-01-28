@@ -1,9 +1,8 @@
 # This is a xenial base with python 3.5 as well
-FROM python:3.8.7-slim-buster
+FROM python:3.7.9-slim-stretch AS builder
 
 #FROM ubuntu:xenial
 
-WORKDIR /gridappsd
 
 RUN apt-get update \
     && apt-get install -y \
@@ -39,6 +38,27 @@ RUN apt-get update \
     && sudo sudo /usr/bin/update-alternatives  --set g++ /usr/bin/g++-8 \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/archives/*
+# Build and install gcc 8
+RUN cd /opt \
+    && wget http://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-8.4.0/gcc-8.4.0.tar.gz \
+    && tar zxf gcc-8.4.0.tar.gz \
+    && cd gcc-8.4.0 \
+    && ./contrib/download_prerequisites \
+    && apt -y install build-essential \
+    && ./configure --disable-multilib \
+    && make -j 4 \
+    && make install \
+    && gcc --version  \
+    && cd \
+    && rm -rf /opt/gcc-8.4.0 /opt/gcc-8.4.0.tar.gz \
+    && sudo /usr/bin/update-alternatives --install /usr/bin/gcc gcc /usr/local/bin/gcc 1 \
+    && sudo /usr/bin/update-alternatives --install /usr/bin/g++ g++ /usr/local/bin/g++ 1 \
+    && sudo sudo /usr/bin/update-alternatives  --set gcc /usr/local/bin/gcc \
+    && sudo sudo /usr/bin/update-alternatives  --set g++ /usr/local/bin/g++
+
+FROM builder
+
+WORKDIR /gridappsd
 
 ENV GRIDAPPSD=/gridappsd
 ENV FNCS_INSTALL=${GRIDAPPSD}

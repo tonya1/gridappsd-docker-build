@@ -213,6 +213,23 @@ RUN cd ${TEMP_DIR} \
   && /bin/rm -r ${TEMP_DIR}/gridappsd-state-estimator
 
 # ----------------------------------------------------
+# INSTALL Ochre
+# ----------------------------------------------------
+RUN cd /gridappsd/services/ \
+    && git clone https://github.com/gridappsd/gridappsd-ochre \
+    && cd /tmp \
+    && wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+    && bash Miniconda3-latest-Linux-x86_64.sh -b -p /miniconda \
+    && /miniconda/bin/conda init bash \
+    && cd /gridappsd/services/gridappsd-ochre \
+    && /miniconda/bin/conda env create \
+    && rm -rf /root/.cache/pip/wheels \
+    && rm -rf /tmp/Miniconda3-latest-Linux-x86_64.sh
+
+ENV PYTHONPATH=${PYTHONPATH}:/gridappsd/services/gridappsd-ochre
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64
+
+# ----------------------------------------------------
 # Set the JAVA_HOME variable 
 # ----------------------------------------------------
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64

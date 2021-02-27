@@ -1,9 +1,8 @@
 # This is a xenial base with python 3.5 as well
-FROM python:3.7.3-slim-stretch
+FROM python:3.7.9-slim-stretch AS builder
 
 #FROM ubuntu:xenial
 
-WORKDIR /gridappsd
 
 RUN apt-get update \
     && apt-get install -y \
@@ -39,6 +38,27 @@ RUN apt-get update \
     && sudo sudo /usr/bin/update-alternatives  --set g++ /usr/bin/g++-6 \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/archives/*
+
+# Build and install gcc 8
+RUN cd /opt \
+    && wget http://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-8.4.0/gcc-8.4.0.tar.gz \
+    && tar zxf gcc-8.4.0.tar.gz \
+    && cd gcc-8.4.0 \
+    && ./contrib/download_prerequisites \
+    && apt -y install build-essential \
+    && ./configure --disable-multilib \
+    && make -j 4 \
+    && make install \
+    && cd \
+    && rm -rf /opt/gcc-8.4.0 /opt/gcc-8.4.0.tar.gz \
+    && sudo /usr/bin/update-alternatives --install /usr/bin/gcc gcc /usr/local/bin/gcc 1 \
+    && sudo /usr/bin/update-alternatives --install /usr/bin/g++ g++ /usr/local/bin/g++ 1 \
+    && sudo sudo /usr/bin/update-alternatives  --set gcc /usr/local/bin/gcc \
+    && sudo sudo /usr/bin/update-alternatives  --set g++ /usr/local/bin/g++
+
+FROM builder
+
+WORKDIR /gridappsd
 
 ENV GRIDAPPSD=/gridappsd
 ENV FNCS_INSTALL=${GRIDAPPSD}
@@ -191,6 +211,23 @@ RUN cd ${TEMP_DIR} \
   && cp /gridappsd/services/gridappsd-state-estimator/state-estimator.config /gridappsd/services/ \
   && cd /tmp \
   && /bin/rm -r ${TEMP_DIR}/gridappsd-state-estimator
+
+# ----------------------------------------------------
+# INSTALL Ochre
+# ----------------------------------------------------
+RUN cd /gridappsd/services/ \
+    && git clone https://github.com/gridappsd/gridappsd-ochre \
+    && cd /tmp \
+    && wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+    && bash Miniconda3-latest-Linux-x86_64.sh -b -p /miniconda \
+    && /miniconda/bin/conda init bash \
+    && cd /gridappsd/services/gridappsd-ochre \
+    && /miniconda/bin/conda env create \
+    && rm -rf /root/.cache/pip/wheels \
+    && rm -rf /tmp/Miniconda3-latest-Linux-x86_64.sh
+
+ENV PYTHONPATH=${PYTHONPATH}:/gridappsd/services/gridappsd-ochre
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64
 
 # ----------------------------------------------------
 # Set the JAVA_HOME variable 

@@ -219,9 +219,8 @@ RUN cd /gridappsd/services/ \
     && git clone https://github.com/gridappsd/gridappsd-ochre \
     && cd /gridappsd/services/gridappsd-ochre \
     && pip install -r requirements.txt \
-    && rm -rf /root/.cache/pip/wheels \
-    && rm -rf /tmp/Miniconda3-latest-Linux-x86_64.sh
-
+    && rm -rf /root/.cache/pip/wheels 
+    
 ENV PYTHONPATH=${PYTHONPATH}:/gridappsd/services/gridappsd-ochre
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64
 

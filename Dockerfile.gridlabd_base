@@ -10,7 +10,7 @@ WORKDIR ${TEMP_DIR}
 
 #RUN printenv
 
-RUN git clone https://github.com/gridlab-d/gridlab-d.git -b release/RC4.0 --single-branch
+RUN git clone https://github.com/gridlab-d/gridlab-d.git -b develop --single-branch
 
 WORKDIR ${TEMP_DIR}/gridlab-d/third_party
 

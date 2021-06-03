@@ -10,7 +10,6 @@ RUN apt-get update \
        git \
        automake \
        autoconf \
-       cmake \
        make \
        g++-6 \
        gcc-6 \
@@ -55,6 +54,17 @@ RUN cd /opt \
     && sudo /usr/bin/update-alternatives --install /usr/bin/g++ g++ /usr/local/bin/g++ 1 \
     && sudo sudo /usr/bin/update-alternatives  --set gcc /usr/local/bin/gcc \
     && sudo sudo /usr/bin/update-alternatives  --set g++ /usr/local/bin/g++
+
+# Build and install cmake >= 10 
+RUN cd /opt \
+    && wget https://github.com/Kitware/CMake/releases/download/v3.20.3/cmake-3.20.3.tar.gz \
+    && tar zxf cmake-3.20.3.tar.gz \
+    && cd cmake-3.20.3 \
+    && ./bootstrap \
+    && make \
+    && make install \
+    && cd \
+    && rm -rf /opt/cmake-3.20.3 cmake-3-20.3.tar.gz
 
 FROM builder
 
@@ -203,7 +213,7 @@ RUN cd ${TEMP_DIR} \
   && cd gridappsd-state-estimator \
   && git clone https://github.com/GRIDAPPSD/SuiteSparse \
   && git clone https://github.com/GRIDAPPSD/json \
-  && make -C SuiteSparse LAPACK=-llapack BLAS=-lblas \
+  && LD_LIBRARY_PATH=${TEMP_DIR}/gridappsd-state-estimator/SuiteSparse/lib/ make -C SuiteSparse LAPACK=-llapack BLAS=-lblas \
   && make -C state-estimator \
   && mkdir -p /gridappsd/services/gridappsd-state-estimator \
   && rm -rf .git SuiteSparse/.git json.git \
